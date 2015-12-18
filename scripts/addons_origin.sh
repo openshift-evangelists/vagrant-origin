@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+#
+# Maintainer: Jorge Morales <jmorales@redhat.com>
+#
+# Prepare, configure and start OpenShift
+#
+# $1 : Public IP Address
+# $2 : Public host name
+# $3 : Config (testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics)
+# $4 : Force
+#
+# The execution of this script will create a set of files <TESTS_DIR>/<THIS_SCRIPT_FILENAME>.<FUNCTION>.configured
+# that can be deleted in order to rerun the function when running the script
+#
+# You can use a param (Force) with anyvalue that will force installing whatever addon you have selected
+
+#set -o nounset
+
+# This script must be run as root
+[ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
+
+__base="addons_origin"
+__BUILD_DIR="/go/src/github.com/openshift"
+__CONFIG_DIR="/var/lib/origin"
+__TESTS_DIR=${__CONFIG_DIR}/tests
+__BIN_DIR=${__CONFIG_DIR}/bin
+
+mkdir -p ${__TESTS_DIR}
+
+__public_address=$1
+__public_hostname=$2
+__config=$3
+__force=$4
+
+
+__MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
+template_ose_tag=ose-v1.2.0
+origin_tag=1.1
+
+. /etc/profile.d/openshift.sh
+
+[ ! -z ${__force} ] && echo "[INFO] Forcing reinstallation of things" && rm ${__TESTS_DIR}/${__base}.*.configured
+
+# TODO: Depending on the action, delete control files
+arr=$(echo ${__config} | tr "," "\n")
+for x in ${arr}
+do
+   echo "[INFO] Deleting control file for ${x}"
+   touch ${__TESTS_DIR}/${__base}.${x}.wanted
+done
+
+# Installing templates into OpenShift
+if [ -f ${__TESTS_DIR}/${__base}.osetemplates.wanted ]; then
+  if [ ! -f ${__TESTS_DIR}/${__base}.osetemplates.configured ]; then
+    echo "[INFO] Installing OpenShift templates"
+
+  template_list=(
+    # Image streams
+    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/jboss-image-streams.json
+    https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
+    # DB templates
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json
+    # Jenkins
+    https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json
+    https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json
+    # Node.js
+    https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
+    https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
+    # EAP
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-basic-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-https-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-s2i.json
+    # DecisionServer
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-amq-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-basic-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-https-s2i.json
+    # Fuse
+    ## No templates. They are created by mvn:io.fabric8.archetypes
+    # DataGrid
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-basic.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-https.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-mysql-persistent.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-mysql.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-postgresql-persistent.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-postgresql.json
+
+  )
+
+    for template in ${template_list[@]}; do
+      echo "[INFO] Importing template ${template}"
+      oc create -f $template -n openshift >/dev/null
+    done
+    touch ${__TESTS_DIR}/${__base}.osetemplates.configured
+  fi
+
+  rm ${__TESTS_DIR}/${__base}.osetemplates.wanted
+fi
+
+# Create users
+if [ -f ${__TESTS_DIR}/${__base}.testusers.wanted ]; then
+  if [ ! -f ${__TESTS_DIR}/${__base}.testusers.configured ]; then
+    echo "[INFO] Creating and configuring test users"
+   
+    ## Add whatever user you might want
+    # oadm policy add-cluster-role-to-user cluster-admin admin 
+    touch ${__TESTS_DIR}/${__base}.testusers.configured
+  fi
+   
+  rm ${__TESTS_DIR}/${__base}.testusers.wanted
+fi
+
+# Create metrics
+if [ -f ${__TESTS_DIR}/${__base}.metrics.wanted ]; then
+  if [ ! -f ${__TESTS_DIR}/${__base}.metrics.configured ]; then
+    echo "[INFO] Creating and configuring metrics"
+   
+    oc create -f https://raw.githubusercontent.com/openshift/origin-metrics/master/metrics-deployer-setup.yaml -n openshift-infra
+    oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer -n openshift-infra
+    oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster
+    oc secrets new metrics-deployer nothing=/dev/null -n openshift-infra
+    # This file is placed in /scripts in the VM by Vagrant. If you change, adapt the path. 
+    oc process -f /scripts/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__public_hostname},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
+
+    touch ${__TESTS_DIR}/${__base}.metrics.configured
+  fi
+
+  rm ${__TESTS_DIR}/${__base}.metrics.wanted
+fi
+
+origin_image_list=(
+      # Origin images
+      docker.io/openshift/origin-deployer:latest
+      docker.io/openshift/origin-docker-registry:latest
+      docker.io/openshift/origin-haproxy-router:latest
+      docker.io/openshift/origin-pod:latest
+      docker.io/openshift/origin-sti-builder:latest 
+      docker.io/openshift/origin-docker-builder:latest
+      # docker.io/openshift/origin-custom-docker-builder:latest
+      docker.io/openshift/origin-gitserver:latest
+      # docker.io/openshift/origin-f5-router:latest
+      # docker.io/openshift/origin-keepalived-ipfailover:latest
+      docker.io/openshift/origin-recycler:latest
+      # Metrics
+      docker.io/openshift/origin-metrics-deployer:latest
+      docker.io/openshift/origin-metrics-hawkular-metrics:latest
+      docker.io/openshift/origin-metrics-heapster:latest
+      docker.io/openshift/origin-metrics-cassandra:latest
+)
+
+centos_image_list=(
+      # Centos SCL
+      docker.io/openshift/jenkins-1-centos7:latest
+      docker.io/openshift/mongodb-24-centos7:latest
+      docker.io/openshift/mysql-55-centos7:latest
+      docker.io/openshift/nodejs-010-centos7:latest
+      docker.io/openshift/perl-516-centos7:latest
+      docker.io/openshift/php-55-centos7:latest
+      docker.io/openshift/postgresql-92-centos7:latest
+      docker.io/openshift/python-33-centos7:latest
+      docker.io/openshift/ruby-20-centos7:latest
+      # Add wildfly
+)
+
+rhel_image_list=(
+      # RHEL SCL
+      registry.access.redhat.com/openshift3/jenkins-1-rhel7:latest
+      registry.access.redhat.com/openshift3/mongodb-24-rhel7:latest
+      registry.access.redhat.com/openshift3/mysql-55-rhel7:latest
+      registry.access.redhat.com/openshift3/nodejs-010-rhel7:latest
+      registry.access.redhat.com/openshift3/perl-516-rhel7:latest
+      registry.access.redhat.com/openshift3/php-55-rhel7:latest
+      registry.access.redhat.com/openshift3/postgresql-92-rhel7:latest
+      registry.access.redhat.com/openshift3/python-33-rhel7:latest
+      registry.access.redhat.com/openshift3/ruby-20-rhel7:latest
+      # RHEL images
+)
+
+xpaas_image_list=(
+      # New
+      registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat7-openshift
+      registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift
+      registry.access.redhat.com/jboss-eap-6/eap64-openshift
+      registry.access.redhat.com/jboss-decisionserver-6/decisionserver62-openshift
+      registry.access.redhat.com/jboss-datagrid-6/datagrid65-openshift
+      registry.access.redhat.com/jboss-amq-6/amq62-openshift
+      # Old
+      registry.access.redhat.com/jboss-amq-6/amq-openshift:6.2
+      registry.access.redhat.com/jboss-eap-6/eap-openshift:6.4
+      registry.access.redhat.com/jboss-webserver-3/tomcat7-openshift:3.0
+      registry.access.redhat.com/jboss-webserver-3/tomcat8-openshift:3.0
+)
+
+other_image_list=(
+      # Samples
+      docker.io/openshift/hello-openshift:latest
+)
+
+# Pull down images
+if [ -f ${__TESTS_DIR}/${__base}.originimages.wanted ]
+then
+  if [ ! -f ${__TESTS_DIR}/${__base}.originimages.configured ]
+  then
+    echo "[INFO] Downloading Origin images"
+    for image in ${origin_image_list[@]}; do
+       echo "[INFO] Downloading image ${image}"
+       docker pull $image
+    done
+    touch ${__TESTS_DIR}/${__base}.originimages.configured
+  fi 
+  rm ${__TESTS_DIR}/${__base}.originimages.wanted
+fi
+
+if [ -f ${__TESTS_DIR}/${__base}.centosimages.wanted ]
+then
+  if [ ! -f ${__TESTS_DIR}/${__base}.centosimages.configured ]
+  then
+    echo "[INFO] Downloading CENTOS7 based images"
+    for image in ${centos_image_list[@]}; do
+       echo "[INFO] Downloading image ${image}"
+       docker pull $image
+    done
+    touch ${__TESTS_DIR}/${__base}.centosimages.configured
+  fi
+  rm ${__TESTS_DIR}/${__base}.centosimages.wanted
+fi
+
+if [ -f ${__TESTS_DIR}/${__base}.rhelimages.wanted ]
+then
+  if [ ! -f ${__TESTS_DIR}/${__base}.rhelimages.configured ]
+  then
+    echo "[INFO] Downloading RHEL7 based images"
+    for image in ${rhel_image_list[@]}; do
+       echo "[INFO] Downloading image ${image}"
+       docker pull $image
+    done
+    touch ${__TESTS_DIR}/${__base}.rhelimages.configured
+  fi  
+  rm ${__TESTS_DIR}/${__base}.rhelimages.wanted
+fi
+
+if [ -f ${__TESTS_DIR}/${__base}.xpaasimages.wanted ]
+then
+  if [ ! -f ${__TESTS_DIR}/${__base}.xpaasimages.configured ]
+  then
+    echo "[INFO] Downloading xPaaS RHEL7 based images"
+    for image in ${xpaas_image_list[@]}; do
+      echo "[INFO] Downloading image ${image}"
+      docker pull $image
+    done
+    touch ${__TESTS_DIR}/${__base}.xpaasimages.configured
+  fi
+  rm ${__TESTS_DIR}/${__base}.xpaasimages.wanted
+fi
+
+if [ -f ${__TESTS_DIR}/${__base}.otherimages.wanted ]
+then
+  if [ ! -f ${__TESTS_DIR}/${__base}.otherimages.configured ]
+  then
+    echo "[INFO] Downloading other images"
+    for image in ${other_image_list[@]}; do
+       echo "[INFO] Downloading image ${image}"
+       docker pull $image
+    done
+    touch ${__TESTS_DIR}/${__base}.otherimages.configured
+  fi
+
+  rm ${__TESTS_DIR}/${__base}.otherimages.wanted
+fi
