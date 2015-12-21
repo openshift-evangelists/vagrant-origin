@@ -136,8 +136,8 @@ config(){
   chmod 666 ${__CONFIG_DIR}/openshift.local.config/master/*
 
   # Now we need to make some adjustments to the config
-  # TODO: I think this is not needed anymore
-#  sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__public_hostname}/" ${__MASTER_CONFIG} \
+  sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__public_hostname}/" ${__MASTER_CONFIG}
+  # This options below should not be needed, as openshift-start is handling these
 #  -e "s/\(.*masterPublicURL:\).*/\1 https:\/\/${__public_address}:8443/g" \
 #  -e "s/\(.*publicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g" \
 #  -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g"
