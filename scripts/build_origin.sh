@@ -80,6 +80,8 @@ __checkout(){
   pushd ${__BUILD_DIR}
   echo "[INFO] Cloning $__REPO at branch ${__origin_branch}"
   git clone ${__REPO} -b ${__origin_branch} 
+
+  [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
   popd
 }
 
@@ -103,6 +105,8 @@ build(){
      # else we checkout
      __checkout
   fi   
+
+  [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
 
   if [ ! -d ${__BUILD_DIR}/origin/_output ]
   then
@@ -142,8 +146,12 @@ config(){
 #  -e "s/\(.*publicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g" \
 #  -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g"
 
+  [ ! -d ${__CONFIG_DIR}/openshift.local.config/master ] && echo "[ERROR] There is no master config dir available at ${__CONFIG_DIR}/openshift.local.config/master" && exit 1
+  # NOTE: If node name gets configurable, change this check and service file below
+  [ ! -d ${__CONFIG_DIR}/openshift.local.config/node-origin ] && echo "[ERROR] There is no node config dir available at ${__CONFIG_DIR}/openshift.local.config/node-origin" && exit 1
+
   # Run Origin
-  # openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-localhost/node-config.yaml --public-master=#{PUBLIC_ADDRESS}
+  # openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-origin/node-config.yaml --public-master=#{PUBLIC_ADDRESS}
   cat <<-EOF > /etc/systemd/system/origin.service
   [Unit]
   Description=OpenShift
@@ -151,7 +159,7 @@ config(){
 
   [Service]
   Type=notify
-  ExecStart=/usr/bin/openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-localhost/node-config.yaml --public-master=${__public_address}
+  ExecStart=/usr/bin/openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-origin/node-config.yaml --public-master=${__public_address}
 
   [Install]
   WantedBy=multi-user.target

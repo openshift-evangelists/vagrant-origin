@@ -10,8 +10,8 @@ Vagrant.require_version ">= 1.7.2"
 
 ORIGIN_REPO = ENV['ORIGIN_REPO'] || "openshift"
 ORIGIN_BRANCH = ENV['ORIGIN_BRANCH'] || "master"
-PUBLIC_ADDRESS = ENV['ORIGIN_VM_IP'] || "10.2.2.2"
-PUBLIC_DOMAIN  = ENV['ORIGIN_VM_DOMAIN'] || "apps.#{PUBLIC_ADDRESS}.xip.io"
+PUBLIC_ADDRESS = ENV['PUBLIC_ADDRESS'] || "10.2.2.2"
+PUBLIC_DOMAIN  = ENV['PUBLIC_DOMAIN'] || "apps.#{PUBLIC_ADDRESS}.xip.io"
 ACTION  = ENV['ACTION'] || "none" # (none, clean, build, config)
 CONFIG  = ENV['CONFIG'] || "osetemplates,metrics" # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics
 FORCE_PREREQS = ENV['FORCE_PREREQS']
@@ -25,6 +25,7 @@ Vagrant.configure(2) do |config|
    config.vm.network "private_network", ip: "#{PUBLIC_ADDRESS}"
    config.vm.synced_folder "scripts", "/scripts", type: "rsync"
    config.vm.synced_folder "utils", "/utils", type: "rsync"
+   config.vm.hostname="origin"
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true
