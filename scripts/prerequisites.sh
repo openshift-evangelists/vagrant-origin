@@ -4,7 +4,8 @@
 #
 # Install required packages and the environment for those packages if needed
 #
-# $1 : Force
+# $1 : Journal size
+# $2 : Force
 #
 # The execution of this script will create a file <TESTS_DIR>/<THIS_SCRIPT_FILENAME>.status.configured
 # that can be deleted in order to rerun the script
@@ -22,7 +23,8 @@ __BUILD_DIR="/go/src/github.com/openshift"
 __CONFIG_DIR="/var/lib/origin"
 __TESTS_DIR=${__CONFIG_DIR}/tests
 __BIN_DIR=${__CONFIG_DIR}/bin
-__force=$1
+__journal_size=$1
+__force=$2
 
 mkdir -p ${__TESTS_DIR}
 
@@ -30,8 +32,18 @@ mkdir -p ${__TESTS_DIR}
 
 if [ ! -f ${__TESTS_DIR}/${__base}.status.configured ]
 then
+   # Install additional packages
    dnf install -y docker git golang; dnf clean all
+   # TODO: Fail if commands have not been installed
+   [ "$(which docker)" = "" ] && echo "[ERROR] Docker is not properly installed" && exit 1
+   [ "$(which git)" = "" ] && echo "[ERROR] Git is not properly installed" && exit 1
+   [ "$(which go)" = "" ] && echo "[ERROR] Go is not properly installed" && exit 1
 
+   # Update journal size so it doesn't grow forever
+   sed -i -e "s/.*SystemMaxUse.*/SystemMaxUse=${__journal_size}/" /etc/systemd/journald.conf
+   systemctl restart systemd-journald
+   
+   # Add go environment to be able to build
    echo 'export GOPATH=/go' > /etc/profile.d/go.sh
    echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> /etc/profile.d/go.sh
 

@@ -4,7 +4,8 @@
 #
 # This script will configure Docker for running OpenShift
 #
-# $1 : Force
+# $1 : Docker loopback storage size
+# $2 : Force
 #
 # The execution of this script will create a file <TESTS_DIR>/<THIS_SCRIPT_FILENAME>.status.configured
 # that can be deleted in order to rerun the script
@@ -26,7 +27,8 @@ __BUILD_DIR="/go/src/github.com/openshift"
 __CONFIG_DIR="/var/lib/origin"
 __TESTS_DIR=${__CONFIG_DIR}/tests
 __BIN_DIR=${__CONFIG_DIR}/bin
-__force=$1
+__docker_storage_size=$1
+__force=$2
 
 mkdir -p ${__TESTS_DIR}
 
@@ -44,7 +46,7 @@ then
    ##  Enable the internal registry and configure the Docker to allow pushing to internal OpenShift registry
    echo "[INFO] Configuring Docker for Red Hat registry and else ..."
    sed -i -e "s/^.*INSECURE_REGISTRY=.*/INSECURE_REGISTRY='--insecure-registry 0\.0\.0\.0\/0 '/" /etc/sysconfig/docker 
-   sed -i -e "s/^.*OPTIONS=.*/OPTIONS='--selinux-enabled --storage-opt dm\.no_warn_on_loop_devices=true'/" /etc/sysconfig/docker
+   sed -i -e "s/^.*OPTIONS=.*/OPTIONS='--selinux-enabled --storage-opt dm\.no_warn_on_loop_devices=true --storage-opt dm\.loopdatasize=${__docker_storage_size}'/" /etc/sysconfig/docker
    # sed -i -e "s/^.*ADD_REGISTRY=.*/ADD_REGISTRY='--add-registry registry\.access\.redhat\.com'/" /etc/sysconfig/docker 
 
    ## Disable firewall

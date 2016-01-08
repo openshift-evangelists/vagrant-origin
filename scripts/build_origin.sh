@@ -9,6 +9,7 @@
 # $3 : Action to do   (clean, build, config) Just one of them
 # $4 : Github Origin repo
 # $5 : Github Origin branch
+# $6 : Build Origin images (true|false)
 #
 # You can use a ENV (FORCE_ORIGIN) with anyvalue that will force installing whatever addon you have selected
 
@@ -30,7 +31,9 @@ __public_hostname=$2
 __action=$3
 __origin_repo=$4
 __origin_branch=$5
+__build_images=$6
 
+__version="latest"
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
 __REPO="https://github.com/${__origin_repo}/origin.git"
 
@@ -113,6 +116,14 @@ build(){
     # We build  
     cd ${__BUILD_DIR}/origin
     hack/build-go.sh
+    # TODO: Test this
+    if [ "${__build_images}" = "true" ]
+    then
+      hack/build-base-images.sh
+      hack/build-release.sh
+      hack/build-images.sh
+      __version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
+    fi  
 
     # We copy the binaries into the <CONFIG_DIR>/bin and then link them
     mkdir -p ${__CONFIG_DIR}/bin
@@ -124,6 +135,7 @@ build(){
 
 config(){
   [ -e ${__MASTER_CONFIG} ] && return 0
+  echo "[INFO] Using images version ${__version}"
 
   echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
   echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
@@ -135,7 +147,8 @@ config(){
             --master=${__public_address} \
             --etcd-dir=${__CONFIG_DIR}/openshift.local.etcd \
             --write-config=${__CONFIG_DIR}/openshift.local.config \
-            --volume-dir=${__CONFIG_DIR}/openshift.local.volumes
+            --volume-dir=${__CONFIG_DIR}/openshift.local.volumes \
+            --images='openshift/origin-${component}:'${__version}
 
   chmod 666 ${__CONFIG_DIR}/openshift.local.config/master/*
 
@@ -159,7 +172,7 @@ config(){
 
   [Service]
   Type=notify
-  ExecStart=/usr/bin/openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-origin/node-config.yaml --public-master=${__public_address}
+  ExecStart=/usr/bin/openshift start --master-config=${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml --node-config=${__CONFIG_DIR}/openshift.local.config/node-origin/node-config.yaml --public-master=${__public_address}
 
   [Install]
   WantedBy=multi-user.target
@@ -173,7 +186,7 @@ add_resources() {
   # Install Registry
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.registry.configured ]; then
     echo "[INFO] Creating the OpenShift Registry"
-    oadm registry --create --credentials=/var/lib/origin/openshift.local.config/master/openshift-registry.kubeconfig
+    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
     touch ${__CONFIG_DIR}/tests/${__base}.registry.configured
   fi
 
@@ -185,7 +198,7 @@ add_resources() {
     ## Add router ServiceAccount to privileged SCC
     oc get scc privileged -o json  | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
     ## Create the router
-    oadm router --create --credentials=/var/lib/origin/openshift.local.config/master/openshift-router.kubeconfig --service-account=router 
+    oadm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router 
     touch ${__CONFIG_DIR}/tests/${__base}.router.configured
   fi
 
@@ -202,19 +215,22 @@ add_resources() {
     echo "[INFO] Installing Origin templates"
 
     template_list=(
-      # Image streams
+      # Image streams (Centos7)
+      ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
+      ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
+      ## Wildfly 8.1
       https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
-      # DB templates
+      # DB templates (Centos)
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json
-      # Jenkins
+      # Jenkins (Centos)
       https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json
       https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json
-      # Node.js
+      # Node.js (Centos)
       https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
       https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
     )
