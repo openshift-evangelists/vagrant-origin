@@ -28,6 +28,7 @@ Vagrant.configure(2) do |config|
    config.vm.network "private_network", ip: "#{PUBLIC_ADDRESS}"
    config.vm.synced_folder "scripts", "/scripts", type: "rsync"
    config.vm.synced_folder "utils", "/utils", type: "rsync"
+   config.vm.hostname = "origin"
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true
