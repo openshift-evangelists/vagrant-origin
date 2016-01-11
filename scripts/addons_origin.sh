@@ -123,6 +123,11 @@ if [ -f ${__TESTS_DIR}/${__base}.metrics.wanted ]; then
     oc process -f /scripts/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__public_hostname},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
     # Add metricsPublicURL to master-config
     sed -i.orig -e "s/\(.*metricsPublicURL:\).*/\1 https:\/\/hawkular-metrics.${__public_hostname}\/hawkular\/metrics/g" ${__MASTER_CONFIG}
+    systemctl restart origin
+
+    echo ""
+    echo "[INFO] Please visit https:\/\/hawkular-metrics.${__public_hostname} and accept the ssl certificate for the metrics to work"
+    echo ""
 
     touch ${__TESTS_DIR}/${__base}.metrics.configured
   fi
