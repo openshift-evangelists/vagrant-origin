@@ -35,7 +35,6 @@ __force=$4
 
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
 template_ose_tag=ose-v1.2.0
-origin_tag=1.1
 
 . /etc/profile.d/openshift.sh
 
@@ -45,7 +44,6 @@ origin_tag=1.1
 arr=$(echo ${__config} | tr "," "\n")
 for x in ${arr}
 do
-   echo "[INFO] Deleting control file for ${x}"
    touch ${__TESTS_DIR}/${__base}.${x}.wanted
 done
 
@@ -55,24 +53,13 @@ if [ -f ${__TESTS_DIR}/${__base}.osetemplates.wanted ]; then
     echo "[INFO] Installing OpenShift templates"
 
   template_list=(
-    # Image streams
-    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json
+    ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
+    ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
+    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
+    ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
     https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/jboss-image-streams.json
+    ## Fuse Image Streams
     https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
-    # DB templates
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json
-    # Jenkins
-    https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json
-    https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json
-    # Node.js
-    https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
-    https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
     # EAP
     https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-persistent-s2i.json
     https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-s2i.json
@@ -130,16 +117,19 @@ if [ -f ${__TESTS_DIR}/${__base}.metrics.wanted ]; then
    
     oc create -f https://raw.githubusercontent.com/openshift/origin-metrics/master/metrics-deployer-setup.yaml -n openshift-infra
     oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer -n openshift-infra
-    oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster
+    oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster -n openshift-infra
     oc secrets new metrics-deployer nothing=/dev/null -n openshift-infra
     # This file is placed in /scripts in the VM by Vagrant. If you change, adapt the path. 
     oc process -f /scripts/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__public_hostname},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
+    # Add metricsPublicURL to master-config
+    sed -i.orig -e "s/\(.*metricsPublicURL:\).*/\1 https:\/\/hawkular-metrics.${__public_hostname}\/hawkular\/metrics/g" ${__MASTER_CONFIG}
 
     touch ${__TESTS_DIR}/${__base}.metrics.configured
   fi
 
   rm ${__TESTS_DIR}/${__base}.metrics.wanted
 fi
+
 
 origin_image_list=(
       # Origin images

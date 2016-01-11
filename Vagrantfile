@@ -19,7 +19,7 @@ FORCE_DOCKER  = ENV['FORCE_DOCKER']
 FORCE_ADDONS  = ENV['FORCE_ADDONS']
 BUILD_IMAGES  = ENV['BUILD_IMAGES'] || "false" # (true|false)
 JOURNAL_SIZE = ENV['JOURNAL_SIZE'] || "100M" # (Use a number suffixed by M,G)
-DOCKER_STORAGE_SIZE = ENV['DOCKER_STORAGE_SIZE'] || "20G" # (Use a number suffixed by G)
+DOCKER_STORAGE_SIZE = ENV['DOCKER_STORAGE_SIZE'] || "30G" # (Use a number suffixed by G)
 
 Vagrant.configure(2) do |config|
 
