@@ -27,8 +27,14 @@ Vagrant.configure(2) do |config|
    config.vm.box = "fedora-23" # vagrant box add --name fedora-23 Fedora-Cloud-Base-Vagrant-23-20151030.x86_64.vagrant-libvirt.box
    config.vm.box_check_update = false
    config.vm.network "private_network", ip: "#{PUBLIC_ADDRESS}"
-   config.vm.synced_folder "scripts", "/scripts", type: "rsync"
-   config.vm.synced_folder "utils", "/utils", type: "rsync"
+   config.vm.synced_folder ".", "/vagrant", disabled: true
+   if Vagrant::Util::Platform.windows?
+      config.vm.synced_folder "scripts", "/scripts"
+      config.vm.synced_folder "utils", "/utils"
+   else
+      config.vm.synced_folder "scripts", "/scripts", type: "rsync"
+      config.vm.synced_folder "utils", "/utils", type: "rsync"
+   end
    config.vm.hostname = "origin"
 
    config.vm.provider "virtualbox" do |vb|
