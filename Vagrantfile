@@ -12,6 +12,7 @@ ORIGIN_REPO = ENV['ORIGIN_REPO'] || "openshift"
 ORIGIN_BRANCH = ENV['ORIGIN_BRANCH'] || "master"
 PUBLIC_ADDRESS = ENV['ORIGIN_VM_IP'] || "10.2.2.2"
 PUBLIC_DOMAIN  = ENV['ORIGIN_VM_DOMAIN'] || "apps.#{PUBLIC_ADDRESS}.xip.io"
+VM_MEM = ENV['ORIGIN_VM_MEM'] || "4096" # Memory used for the VM
 ACTION  = ENV['ACTION'] || "none" # (none, clean, build, config)
 CONFIG  = ENV['CONFIG'] || "osetemplates,metrics" # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics
 FORCE_PREREQS = ENV['FORCE_PREREQS']
@@ -32,19 +33,19 @@ Vagrant.configure(2) do |config|
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true
-      vb.memory = "4096"
+      vb.memory = "#{VM_MEM}"
       vb.cpus = 2
       vb.name = "origin"
    end
 
    config.vm.provider "libvirt" do |lv|
-      lv.memory = "4096"
+      lv.memory = "#{VM_MEM}"
       lv.cpus = 2
    end
 
    # Install base requirements
    config.vm.provision :shell, :path => "./scripts/prerequisites.sh", :args => "#{JOURNAL_SIZE} #{FORCE_PREREQS}"
-  
+
    # Setup the VM
    config.vm.provision :shell, :path => "./scripts/configure_docker.sh", :args => "#{DOCKER_STORAGE_SIZE} #{FORCE_DOCKER}"
 

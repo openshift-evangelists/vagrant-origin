@@ -33,7 +33,7 @@ mkdir -p ${__TESTS_DIR}
 if [ ! -f ${__TESTS_DIR}/${__base}.status.configured ]
 then
    # Install additional packages
-   dnf install -y docker git golang; dnf clean all
+   dnf install -y docker git golang bind-utils; dnf clean all
    # TODO: Fail if commands have not been installed
    [ "$(which docker)" = "" ] && echo "[ERROR] Docker is not properly installed" && exit 1
    [ "$(which git)" = "" ] && echo "[ERROR] Git is not properly installed" && exit 1
@@ -42,7 +42,7 @@ then
    # Update journal size so it doesn't grow forever
    sed -i -e "s/.*SystemMaxUse.*/SystemMaxUse=${__journal_size}/" /etc/systemd/journald.conf
    systemctl restart systemd-journald
-   
+
    # Add go environment to be able to build
    echo 'export GOPATH=/go' > /etc/profile.d/go.sh
    echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> /etc/profile.d/go.sh
