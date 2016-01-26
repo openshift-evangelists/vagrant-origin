@@ -32,9 +32,25 @@ mkdir -p ${__TESTS_DIR}
 
 if [ ! -f ${__TESTS_DIR}/${__base}.status.configured ]
 then
+   # This is required to solve a bug with Vagrant > 1.7. < 1.8 when repackaging the box for redistribution
+   # Also following line required in Vagrantfile
+   # config.ssh.insert_key = false
+   curl https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys
+   chmod 700 /home/vagrant/.ssh
+   chmod 600 /home/vagrant/.ssh/authorized_keys
+   chown -R vagrant:vagrant /home/vagrant/.ssh
+
+   # Change https with http in yum repos for allowing to cache locally on host for faster installs 
+   for file in `ls /etc/yum.repos.d/`
+   do
+      sed -i -e 's/https/http/g' /etc/yum.repos.d/$file
+   done   
+
    # Install additional packages
    dnf install -y docker git golang bind-utils; dnf clean all
-   # TODO: Fail if commands have not been installed
+   # TODO: Maybe update the whole box with: dnf update
+
+   # Fail if commands have not been installed
    [ "$(which docker)" = "" ] && echo "[ERROR] Docker is not properly installed" && exit 1
    [ "$(which git)" = "" ] && echo "[ERROR] Git is not properly installed" && exit 1
    [ "$(which go)" = "" ] && echo "[ERROR] Go is not properly installed" && exit 1

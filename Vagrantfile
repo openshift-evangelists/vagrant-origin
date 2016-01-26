@@ -36,6 +36,8 @@ Vagrant.configure(2) do |config|
       config.vm.synced_folder "utils", "/utils", type: "rsync"
    end
    config.vm.hostname = "origin"
+   # This is required to solve a bug with Vagrant > 1.7. < 1.8 when repackaging the box for redistribution
+   config.ssh.insert_key = false
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true

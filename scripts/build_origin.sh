@@ -35,7 +35,8 @@ __build_images=$6
 
 __version="latest"
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
-__REPO="https://github.com/${__origin_repo}/origin.git"
+# Using http instead of https for allowing to local cache with squid for faster provisionings
+__REPO="http://github.com/${__origin_repo}/origin.git"
 
 [ ! -z ${FORCE_ORIGIN} ] && echo "[INFO] Forcing reinstallation of things" && rm ${__TESTS_DIR}/${__base}.*.configured
 
@@ -82,7 +83,7 @@ __checkout(){
 
   pushd ${__BUILD_DIR}
   echo "[INFO] Cloning $__REPO at branch ${__origin_branch}"
-  git clone ${__REPO} -b ${__origin_branch} 
+  git clone ${__REPO} -b ${__origin_branch}
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
   popd
@@ -93,7 +94,7 @@ __update(){
   pushd ${__BUILD_DIR}/origin
   echo "[INFO] Updating to latest"
   git pull
-  popd 
+  popd
 }
 
 build(){
@@ -107,13 +108,13 @@ build(){
   else
      # else we checkout
      __checkout
-  fi   
+  fi
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
 
   if [ ! -d ${__BUILD_DIR}/origin/_output ]
   then
-    # We build  
+    # We build
     cd ${__BUILD_DIR}/origin
     hack/build-go.sh
     # TODO: Test this
@@ -123,7 +124,7 @@ build(){
       hack/build-release.sh
       hack/build-images.sh
       __version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
-    fi  
+    fi
 
     # We copy the binaries into the <CONFIG_DIR>/bin and then link them
     mkdir -p ${__CONFIG_DIR}/bin
@@ -182,7 +183,7 @@ EOF
 
 add_resources() {
   . /etc/profile.d/openshift.sh
-  
+
   # Install Registry
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.registry.configured ]; then
     echo "[INFO] Creating the OpenShift Registry"
@@ -198,7 +199,7 @@ add_resources() {
     ## Add router ServiceAccount to privileged SCC
     oc get scc privileged -o json  | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
     ## Create the router
-    oadm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router 
+    oadm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router
     touch ${__CONFIG_DIR}/tests/${__base}.router.configured
   fi
 
@@ -206,7 +207,7 @@ add_resources() {
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.users.configured ]; then
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
-    oadm policy add-cluster-role-to-user cluster-admin admin 
+    oadm policy add-cluster-role-to-user cluster-admin admin
     touch ${__CONFIG_DIR}/tests/${__base}.users.configured
   fi
 
@@ -234,13 +235,24 @@ add_resources() {
       https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
       https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
     )
-    
+
     for template in ${template_list[@]}; do
       echo "[INFO] Importing template ${template}"
       oc create -f $template -n openshift >/dev/null
     done
     touch ${__CONFIG_DIR}/tests/${__base}.templates.configured
   fi
+
+  # Add sample app. This needs to be lightweight and expose the app in a meaningful route
+#  if [ ! -f ${__CONFIG_DIR}/tests/${__base}.sample.configured ]; then
+#    echo "[INFO] Creating sample app"
+    ## Add admin as a cluster-admin
+#    oc new-project turbo --display-name="Turbo Sample" --description="This is an example project to demonstrate OpenShift v3"
+#    oc process -f https://raw.githubusercontent.com/openshift/origin/master/examples/sample-app/application-template-stibuild.json | oc create -n turbo -f -
+    # curl -skL -w "%{http_code} %{url_effective}\\n" -o /tmp/output -H 'Host: www.example.com' https://localhost:443
+
+#    touch ${__CONFIG_DIR}/tests/${__base}.sample.configured
+#  fi
 
 }
 

@@ -3,8 +3,8 @@
 # Run all additional scripts in order
 #
 #
-
-for i in `ls | grep -v "run.sh" | sort -V`
+echo "[INFO] Executing every script with numerical index in order"
+for i in `ls [0-9]/* | sort -V`
 do
   if [ -x ${i} ]
   then
