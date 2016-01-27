@@ -15,7 +15,7 @@ PUBLIC_DOMAIN  = ENV['ORIGIN_VM_DOMAIN'] || "apps.#{PUBLIC_ADDRESS}.xip.io"
 VM_MEM = ENV['ORIGIN_VM_MEM'] || "4096" # Memory used for the VM
 ACTION  = ENV['ACTION'] || "none" # (none, clean, build, config)
 CONFIG  = ENV['CONFIG'] || "osetemplates,metrics" # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics
-FORCE_PREREQS = ENV['FORCE_PREREQS']
+FORCE_OS = ENV['FORCE_OS']
 FORCE_DOCKER  = ENV['FORCE_DOCKER']
 FORCE_ADDONS  = ENV['FORCE_ADDONS']
 BUILD_IMAGES  = ENV['BUILD_IMAGES'] || "false" # (true|false)
@@ -52,16 +52,16 @@ Vagrant.configure(2) do |config|
    end
 
    # Install base requirements
-   config.vm.provision :shell, :path => "./scripts/prerequisites.sh", :args => "#{JOURNAL_SIZE} #{FORCE_PREREQS}"
+   config.vm.provision :shell, :path => "./scripts/os-setup.sh", :args => "#{JOURNAL_SIZE} #{FORCE_OS}"
 
    # Setup the VM
-   config.vm.provision :shell, :path => "./scripts/configure_docker.sh", :args => "#{DOCKER_STORAGE_SIZE} #{FORCE_DOCKER}"
+   config.vm.provision :shell, :path => "./scripts/docker-setup.sh", :args => "#{DOCKER_STORAGE_SIZE} #{FORCE_DOCKER}"
 
    # Build Origin
-   config.vm.provision :shell, :path => "./scripts/build_origin.sh", :args => "#{PUBLIC_ADDRESS} #{PUBLIC_DOMAIN} #{ACTION} #{ORIGIN_REPO} #{ORIGIN_BRANCH} #{BUILD_IMAGES}"
+   config.vm.provision :shell, :path => "./scripts/origin-setup.sh", :args => "#{PUBLIC_ADDRESS} #{PUBLIC_DOMAIN} #{ACTION} #{ORIGIN_REPO} #{ORIGIN_BRANCH} #{BUILD_IMAGES}"
 
    # Run and configure Origin
-   config.vm.provision :shell, :path => "./scripts/addons_origin.sh", :args => "#{PUBLIC_ADDRESS} #{PUBLIC_DOMAIN} #{CONFIG} #{FORCE_ADDONS}"
+   config.vm.provision :shell, :path => "./scripts/addons-setup.sh", :args => "#{PUBLIC_ADDRESS} #{PUBLIC_DOMAIN} #{CONFIG} #{FORCE_ADDONS}"
 
    config.vm.provision :shell, inline: <<-SHELL
       echo ""
