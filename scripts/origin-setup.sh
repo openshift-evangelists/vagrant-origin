@@ -211,6 +211,14 @@ add_resources() {
     touch ${__CONFIG_DIR}/tests/${__base}.users.configured
   fi
 
+  # Allow all users to run as anyuid
+  if [ ! -f ${__CONFIG_DIR}/tests/${__base}.anyuid.configured ]; then
+    echo "[INFO] Creating and configuring users"
+    ## Add admin as a cluster-admin
+    oadm policy add-scc-to-group anyuid system:authenticated
+    touch ${__CONFIG_DIR}/tests/${__base}.anyuid.configured
+  fi
+
   # Installing templates into OpenShift
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.templates.configured ]; then
     echo "[INFO] Installing Origin templates"
