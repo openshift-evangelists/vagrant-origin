@@ -12,7 +12,7 @@ ORIGIN_REPO = ENV['ORIGIN_REPO'] || "openshift"
 ORIGIN_BRANCH = ENV['ORIGIN_BRANCH'] || "master"
 PUBLIC_ADDRESS = ENV['ORIGIN_VM_IP'] || "10.2.2.2"
 PUBLIC_DOMAIN  = ENV['ORIGIN_VM_DOMAIN'] || "apps.#{PUBLIC_ADDRESS}.xip.io"
-VM_MEM = ENV['ORIGIN_VM_MEM'] || "4096" # Memory used for the VM
+VM_MEM = ENV['ORIGIN_VM_MEM'] || 4096 # Memory used for the VM
 ACTION  = ENV['ACTION'] || "none" # (none, clean, build, config)
 CONFIG  = ENV['CONFIG'] || "osetemplates,metrics" # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics
 FORCE_OS = ENV['FORCE_OS']
@@ -47,7 +47,7 @@ Vagrant.configure(2) do |config|
    end
 
    config.vm.provider "libvirt" do |lv|
-      lv.memory = "#{VM_MEM}"
+      lv.memory = VM_MEM
       lv.cpus = 2
    end
 
