@@ -32,14 +32,6 @@ mkdir -p ${__TESTS_DIR}
 
 if [ ! -f ${__TESTS_DIR}/${__base}.status.configured ]
 then
-   # This is required to solve a bug with Vagrant > 1.7. < 1.8 when repackaging the box for redistribution
-   # Also following line required in Vagrantfile
-   # config.ssh.insert_key = false
-   curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
-   chmod 700 /home/vagrant/.ssh
-   chmod 600 /home/vagrant/.ssh/authorized_keys
-   chown -R vagrant:vagrant /home/vagrant/.ssh
-
    # Change https with http in yum repos for allowing to cache locally on host for faster installs 
    for file in `ls /etc/yum.repos.d/`
    do

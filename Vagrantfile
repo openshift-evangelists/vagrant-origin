@@ -21,10 +21,12 @@ FORCE_ADDONS  = ENV['FORCE_ADDONS']
 BUILD_IMAGES  = ENV['BUILD_IMAGES'] || "false" # (true|false)
 JOURNAL_SIZE = ENV['JOURNAL_SIZE'] || "100M" # (Use a number suffixed by M,G)
 DOCKER_STORAGE_SIZE = ENV['DOCKER_STORAGE_SIZE'] || "30G" # (Use a number suffixed by G)
+HOSTNAME = "origin"
 
 Vagrant.configure(2) do |config|
 
-   config.vm.box = "fedora-23" # vagrant box add --name fedora-23 Fedora-Cloud-Base-Vagrant-23-20151030.x86_64.vagrant-libvirt.box
+   config.vm.box = "fedora/23-cloud-base" 
+   # vagrant box add --name fedora/23-cloud-base Fedora-Cloud-Base-Vagrant-23-20151030.x86_64.vagrant-libvirt.box
    config.vm.box_check_update = false
    config.vm.network "private_network", ip: "#{PUBLIC_ADDRESS}"
    config.vm.synced_folder ".", "/vagrant", disabled: true
@@ -35,19 +37,19 @@ Vagrant.configure(2) do |config|
       config.vm.synced_folder "scripts", "/scripts", type: "rsync"
       config.vm.synced_folder "utils", "/utils", type: "rsync"
    end
-   config.vm.hostname = "origin"
-   # This is required to solve a bug with Vagrant > 1.7. < 1.8 when repackaging the box for redistribution
-   config.ssh.insert_key = false
+   # config.vm.hostname = "#{VM_MEM}" # It seems there is a bug in Vagrant that it does not properly manage hostname substtution and does not remove ipv6 names
+   config.vm.provision "shell", inline: "hostname #{VM_MEM}", run: "always"
+   config.vm.provision "shell", inline: "sed -i.bak '/::1/d' /etc/hosts && echo '127.0.1.1 #{VM_MEM}' >> /etc/hosts"
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true
-      vb.memory = "#{VM_MEM}"
+      vb.memory = #{VM_MEM}
       vb.cpus = 2
       vb.name = "origin"
    end
 
    config.vm.provider "libvirt" do |lv|
-      lv.memory = VM_MEM
+      lv.memory = #{VM_MEM}
       lv.cpus = 2
    end
 
