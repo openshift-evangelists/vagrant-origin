@@ -16,6 +16,10 @@
 
 #set -o nounset
 
+# Set magic variables for current file & dir
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
+
 # This script must be run as root
 [ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
 
@@ -34,7 +38,7 @@ __force=$4
 
 
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
-template_ose_tag=ose-v1.2.0
+template_ose_tag=ose-v1.2.0-1
 
 . /etc/profile.d/openshift.sh
 
@@ -78,12 +82,12 @@ if [ -f ${__TESTS_DIR}/${__base}.osetemplates.wanted ]; then
     # Fuse
     ## No templates. They are created by mvn:io.fabric8.archetypes
     # DataGrid
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-basic.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-https.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-mysql-persistent.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-mysql.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-postgresql-persistent.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/ose-v1.2.0/datagrid/datagrid65-postgresql.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-basic.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-https.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql-persistent.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql-persistent.json
+    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql.json
 
   )
 

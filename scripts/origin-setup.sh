@@ -15,6 +15,10 @@
 
 #set -o nounset
 
+# Set magic variables for current file & dir
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
+
 # This script must be run as root
 [ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
 
@@ -188,6 +192,11 @@ add_resources() {
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.registry.configured ]; then
     echo "[INFO] Creating the OpenShift Registry"
     oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
+
+    # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
+    oc expose service docker-registry --hostname "hub.${__public_address}"
+    echo "[INFO] Registry is accesible in hub.${__public_address}"
+
     touch ${__CONFIG_DIR}/tests/${__base}.registry.configured
   fi
 
@@ -200,6 +209,7 @@ add_resources() {
     oc get scc privileged -o json  | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
     ## Create the router
     oadm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router
+
     touch ${__CONFIG_DIR}/tests/${__base}.router.configured
   fi
 
@@ -208,6 +218,7 @@ add_resources() {
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
     oadm policy add-cluster-role-to-user cluster-admin admin
+
     touch ${__CONFIG_DIR}/tests/${__base}.users.configured
   fi
 
@@ -216,6 +227,7 @@ add_resources() {
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
     oadm policy add-scc-to-group anyuid system:authenticated
+
     touch ${__CONFIG_DIR}/tests/${__base}.anyuid.configured
   fi
 
@@ -248,7 +260,48 @@ add_resources() {
       echo "[INFO] Importing template ${template}"
       oc create -f $template -n openshift >/dev/null
     done
+
     touch ${__CONFIG_DIR}/tests/${__base}.templates.configured
+  fi
+
+
+  # Add nfs and some sample NFS mounts and PVs
+  if [ ! -f ${__CONFIG_DIR}/tests/${__base}.nfs.configured ]; then
+    echo "[INFO] Creating and configuring NFS"
+
+    dnf -y install nfs-utils
+
+    mkdir -p /nfsvolumes/pv{01..10}
+    chown -R nfsnobody:nfsnobody /nfsvolumes
+    chmod -R 777 /nfsvolumes
+
+    echo '' > /etc/exports
+    for i in {01..10}
+    do
+      echo "/nfsvolumes/pv${i} *(rw,root_squash)" >> /etc/exports
+    done
+
+    # To allow pods to write to remote NFS servers
+    setsebool -P virt_use_nfs 1
+
+    # Start and enable nfs
+    systemctl start rpcbind nfs-server
+    systemctl enable rpcbind nfs-server
+
+    # Enable the new exports without bouncing the NFS service
+    exportfs -a
+
+    echo "[INFO] Creating 5 NFS PV {pv01..05} using from 1Gi to 5Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
+    # Create 5 volumes from 1Gi to 5 Gi
+    oc create -f ${__dir}/nfs-pv/rwo-rwm-1G.yaml
+    oc create -f ${__dir}/rwo-rwm-2G.yaml
+    oc create -f ${__dir}/nfs-pv/rwo-rwm-3G.yaml
+    oc create -f ${__dir}/nfs-pv/rwo-rwm-4G.yaml
+    oc create -f ${__dir}/nfs-pv/rwo-rwm-5G.yaml
+
+    echo "[INFO] There is 5 NFS shares available to be created as volumes {06..10}. See /scripts/nfs-pv for examples"
+
+    touch ${__CONFIG_DIR}/tests/${__base}.nfs.configured
   fi
 
   # Add sample app. This needs to be lightweight and expose the app in a meaningful route

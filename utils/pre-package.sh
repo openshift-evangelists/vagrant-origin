@@ -3,6 +3,10 @@
 #
 # Preparing the box for packaging. Will remove all unneeded logs, etc...
 
+# Set magic variables for current file & dir
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
+
 # This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
 curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
 chmod 700 /home/vagrant/.ssh

@@ -38,12 +38,12 @@ Vagrant.configure(2) do |config|
       config.vm.synced_folder "utils", "/utils", type: "rsync"
    end
    # config.vm.hostname = "#{VM_MEM}" # It seems there is a bug in Vagrant that it does not properly manage hostname substtution and does not remove ipv6 names
-   config.vm.provision "shell", inline: "hostname #{VM_MEM}", run: "always"
-   config.vm.provision "shell", inline: "sed -i.bak '/::1/d' /etc/hosts && echo '127.0.1.1 #{VM_MEM}' >> /etc/hosts"
+   config.vm.provision "shell", inline: "hostname #{HOSTNAME}", run: "always"
+   config.vm.provision "shell", inline: "sed -i.bak '/::1/d' /etc/hosts && echo '127.0.1.1 #{HOSTNAME}' >> /etc/hosts"
 
    config.vm.provider "virtualbox" do |vb|
       #   vb.gui = true
-      vb.memory = #{VM_MEM}
+      vb.memory = "#{VM_MEM}"
       vb.cpus = 2
       vb.name = "origin"
    end
