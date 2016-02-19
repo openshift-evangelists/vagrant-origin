@@ -292,13 +292,28 @@ add_resources() {
     exportfs -a
 
     echo "[INFO] Creating 5 NFS PV {pv01..05} using from 1Gi to 5Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
+    for i in {1..5}
+    do
+    cat <<-EOF > /tmp/pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv0${i}
+spec:
+  capacity:
+    storage: ${i}Gi
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  nfs:
+    server: localhost
+    path: /nfsvolumes/pv0${i}
+EOF
     # Create 5 volumes from 1Gi to 5 Gi
-    oc create -f ${__dir}/nfs-pv/rwo-rwm-1G.yaml
-    oc create -f ${__dir}/rwo-rwm-2G.yaml
-    oc create -f ${__dir}/nfs-pv/rwo-rwm-3G.yaml
-    oc create -f ${__dir}/nfs-pv/rwo-rwm-4G.yaml
-    oc create -f ${__dir}/nfs-pv/rwo-rwm-5G.yaml
-
+    oc create -f /tmp/pv.yaml
+    done
+    
     echo "[INFO] There is 5 NFS shares available to be created as volumes {06..10}. See /scripts/nfs-pv for examples"
 
     touch ${__CONFIG_DIR}/tests/${__base}.nfs.configured
