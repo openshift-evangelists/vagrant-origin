@@ -49,7 +49,7 @@ Vagrant.configure(2) do |config|
    end
 
    config.vm.provider "libvirt" do |lv|
-      lv.memory = #{VM_MEM}
+      lv.memory = "#{VM_MEM}".to_i
       lv.cpus = 2
    end
 
