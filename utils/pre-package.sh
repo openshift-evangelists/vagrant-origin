@@ -2,19 +2,23 @@
 #
 #
 # Preparing the box for packaging. Will remove all unneeded logs, etc...
+# make sure you you have already added sample-app from the origin repo to the installation
+# https://github.com/openshift/origin/blob/master/examples/sample-app/application-template-stibuild.json
+
 
 # Set magic variables for current file & dir
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 
 # This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
+#to address the vagrant bug - run these as the vagrant user
 curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
 chmod 700 /home/vagrant/.ssh
 chmod 600 /home/vagrant/.ssh/authorized_keys
 chown -R vagrant:vagrant /home/vagrant/.ssh
 oc edit scc restricted #change RunAsUser to RunAsAny
 
-# Remove Non used containers
+# Remove Non used containers  - run as root
 _exited=$(docker ps -aqf "status=exited")
 [ "" != "${_exited}" ] && echo "[INFO] Deleting exited containers" && docker rm -vf ${_exited}
 
@@ -34,7 +38,7 @@ _dangling=$(docker images -f "dangling=true" -q)
 #in /etc/group:
 #postgres:x:26:
 
-# Stop services
+# Stop services - run as root from here on out
 echo "[INFO] Stopping Origin service"
 systemctl stop origin
 echo "[INFO] Stopping Docker service"
