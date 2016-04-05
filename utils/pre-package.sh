@@ -3,15 +3,13 @@
 #
 # Preparing the box for packaging. Will remove all unneeded logs, etc...
 
+
+# This script must be run as root
+[ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
+
 # Set magic variables for current file & dir
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
-
-# This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
-curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
-chmod 700 /home/vagrant/.ssh
-chmod 600 /home/vagrant/.ssh/authorized_keys
-chown -R vagrant:vagrant /home/vagrant/.ssh
 
 # Remove Non used containers
 _exited=$(docker ps -aqf "status=exited")
@@ -49,8 +47,34 @@ rm -f /var/log/anaconda/*
 rm -f /var/log/audit/*
 rm -f /var/log/*.log
 
+# This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
+curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
+chmod 700 /home/vagrant/.ssh
+chmod 600 /home/vagrant/.ssh/authorized_keys
+chown -R vagrant:vagrant /home/vagrant/.ssh
+
+########## NOTES From TheSteve0
+#
+#for Postgres from Crunchy to work run as root
+#in /etc/passwd:
+#postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash
+
+#in /etc/group:
+#postgres:x:26:
+#
+###########
+
 # Compact disk space
 echo "[INFO] Compacting disk"
 dd if=/dev/zero of=/EMPTY bs=1M
 rm -f /EMPTY
 sync
+
+#final step, to be run on the host
+echo "Box is ready to be packaged"
+echo "Execute on your host:"
+echo " "
+echo " vagrant package --base origin --output openshift3-origin.box --vagrantfile ~/openshiftVagrant/Vagrantfile"
+echo " "
+echo " "
+echo "And then upload openshift3-origin.box to Atlas"

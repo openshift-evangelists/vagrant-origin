@@ -145,6 +145,8 @@ echo "[INFO] Using images version ${__version}"
 echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
 echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
 echo "export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> /etc/profile.d/openshift.sh
+echo "export MASTER_CONFIG=${__MASTER_CONFIG}" >> /etc/profile.d/openshift.sh
+
 
 # TODO: Fix permissions for openshift.local.config, openshift.local.etcd, openshift.local.volumes
 # Create initial configuration for Origin
@@ -191,7 +193,17 @@ add_resources() {
   # Install Registry
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.registry.configured ]; then
     echo "[INFO] Creating the OpenShift Registry"
-    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
+    sudo chown 1001:root /opt/registry
+
+    oc create serviceaccount registry -n default
+    oadm policy add-scc-to-user privileged system:serviceaccount:default:registry
+    oadm registry --service-account=registry \
+                  --config=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig \
+                  --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig \
+                  --mount-host=/opt/registry
+
+# TODO: Remove, as the configuration in 1.2 has changed to what can be seen up
+#    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
 
     # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
     oc expose service docker-registry --hostname "hub.${__public_address}"
