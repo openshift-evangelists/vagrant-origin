@@ -193,7 +193,8 @@ add_resources() {
   # Install Registry
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.registry.configured ]; then
     echo "[INFO] Creating the OpenShift Registry"
-    sudo chown 1001:root /opt/registry
+    mkdir -p /opt/registry
+    chmod 777 /opt/registry
 
     oc create serviceaccount registry -n default
     oadm policy add-scc-to-user privileged system:serviceaccount:default:registry
