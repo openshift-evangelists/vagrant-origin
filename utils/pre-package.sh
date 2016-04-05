@@ -2,6 +2,9 @@
 #
 #
 # Preparing the box for packaging. Will remove all unneeded logs, etc...
+# make sure you you have already added sample-app from the origin repo to the installation
+# https://github.com/openshift/origin/blob/master/examples/sample-app/application-template-stibuild.json
+
 
 
 # This script must be run as root
@@ -11,6 +14,7 @@
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 
+<<<<<<< HEAD
 # Remove Non used containers
 _exited=$(docker ps -aqf "status=exited")
 [ "" != "${_exited}" ] && echo "[INFO] Deleting exited containers" && docker rm -vf ${_exited}
@@ -24,7 +28,14 @@ _untagged=$(docker images | grep "<none>" | awk '{print $3}')
 _dangling=$(docker images -f "dangling=true" -q)
 [ "" != "${_dangling}" ] && echo "[INFO] Deleting dangling images" && docker rmi ${_dangling}
 
-# Stop services
+#for Postgres from Crunchy to work run as root
+#in /etc/passwd:
+#postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash
+
+#in /etc/group:
+#postgres:x:26:
+
+# Stop services - run as root from here on out
 echo "[INFO] Stopping Origin service"
 systemctl stop origin
 echo "[INFO] Stopping Docker service"

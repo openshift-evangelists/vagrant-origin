@@ -139,6 +139,44 @@ if [ -f ${__TESTS_DIR}/${__base}.metrics.wanted ]; then
   rm ${__TESTS_DIR}/${__base}.metrics.wanted
 fi
 
+# Create logging
+# TODO: For now it doesn't properly work, but still adding here
+if [ -f ${__TESTS_DIR}/${__base}.logging.wanted ]; then
+  if [ ! -f ${__TESTS_DIR}/${__base}.logging.configured ]; then
+    echo "[INFO] Creating and configuring logging"
+   
+    oadm new-project logging
+    oc secrets new logging-deployer nothing=/dev/null -n logging
+    oc create -f - <<API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: logging-deployer
+secrets:
+- name: logging-deployer
+API
+    oadm policy add-scc-to-user privileged system:serviceaccount:logging:aggregated-logging-fluentd
+    oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:logging:aggregated-logging-fluentd
+    oadm policy add-cluster-role-to-user cluster-admin system:serviceaccount:logging:logging-deployer
+    oc policy add-role-to-user edit system:serviceaccount:logging:logging-deployer
+    oc process logging-deployer-template -n openshift \
+           -v KIBANA_HOSTNAME=kibana.apps.10.2.2.2.xip.io,ES_CLUSTER_SIZE=1,PUBLIC_MASTER_URL=https://10.2.2.2:8443 \
+           | oc create -f -
+    #
+    while [ `oc get pods --no-headers | grep Running | wc -l` -eq 0 ]; do sleep 1; done
+    echo "Configuring resources"
+    while [ `oc get pods --no-headers | grep Running | wc -l` -eq 1 ]; do sleep 1; done
+    echo "Done"
+    oc process logging-support-template | oc create -f - 
+    echo "Logging ready"
+
+    echo ""
+
+    touch ${__TESTS_DIR}/${__base}.logging.configured
+  fi
+
+  rm ${__TESTS_DIR}/${__base}.logging.wanted
+fi
 
 origin_image_list=(
       # Origin images

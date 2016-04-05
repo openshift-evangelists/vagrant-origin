@@ -1,1 +1,8 @@
 Add files and scripts that you want to see in the VM in /utils here
+
+== To do
+- Install Gitlab
+- Install Jenkins
+- Example of build secrets
+- Example of SpringBoot
+- Example of Copy binary from image for jdbc driver

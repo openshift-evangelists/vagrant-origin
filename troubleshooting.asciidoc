@@ -1,0 +1,18 @@
+= Troubleshooting the all-in-one origin Vagrant image
+
+This document contains steps and information we hope you can send us if something goes wrong with your vm. The problem for us is that there are at least 3 places where things can go wrong:
+
+* Communication between your local machine and the VM
+* Networking inside the VM due to Vagrant rewriting of networking
+* Actual start up problems with the different pieces of OpenShift
+
+== Things to try before writing us
+
+* If you just upgraded your box and start having problems we have found that the best way to upgrade is:
+1. vagrant halt
+2. vagrant destroy -f
+3. rm -rf .vagrant (on windows delete the .vagrant dir)
+4. rm Vagrantfile
+5. vagrant init thesteve0/openshift-origin
+6. (optional) edit the new Vagrantfile with changes you need, such as more memory
+7. vagrant up
