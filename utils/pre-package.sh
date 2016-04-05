@@ -14,7 +14,6 @@
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 
-<<<<<<< HEAD
 # Remove Non used containers
 _exited=$(docker ps -aqf "status=exited")
 [ "" != "${_exited}" ] && echo "[INFO] Deleting exited containers" && docker rm -vf ${_exited}
