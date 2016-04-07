@@ -46,125 +46,127 @@ __REPO="http://github.com/${__origin_repo}/origin.git"
 
 # Clean
 clean_source(){
-# Delete the Origin repository previously checked out
-rm -rf ${__BUILD_DIR}
+  # Delete the Origin repository previously checked out
+  rm -rf ${__BUILD_DIR}
 }
 
 # Clean
 clean_target(){
-# Delete the Origin repository previously checked out
-rm -rf ${__BUILD_DIR}/origin/_output
-rm -rf ${__CONFIG_DIR}/bin
+  # Delete the Origin repository previously checked out
+  rm -rf ${__BUILD_DIR}/origin/_output
+  rm -rf ${__CONFIG_DIR}/bin
 }
 
 clean_install(){
-echo "[INFO] Deleting old install"
-# Stop origin and delete all containers
-systemctl stop origin > /dev/null 2>&1
-sleep 3
-if [[ "$(docker ps -qa)" != "" ]]
-then
-docker stop $(docker ps -qa)
-docker rm -vf $(docker ps -qa)
-fi
+  echo "[INFO] Deleting old install"
+  # Stop origin and delete all containers
+  systemctl stop origin > /dev/null 2>&1
+  sleep 3
+  if [[ "$(docker ps -qa)" != "" ]]
+  then
+  docker stop $(docker ps -qa)
+  docker rm -vf $(docker ps -qa)
+  fi
 
-systemctl stop docker
-# Hack to delete secret volumes in use
-cat /etc/mtab | grep kubernetes | awk '{ print $2}' | xargs umount > /dev/null 2>&1
+  systemctl stop docker
+  # Hack to delete secret volumes in use
+  cat /etc/mtab | grep kubernetes | awk '{ print $2}' | xargs umount > /dev/null 2>&1
 
-# Deleting previous configuration
-rm -rf ${__CONFIG_DIR}/openshift.local.*
-rm -rf ${__CONFIG_DIR}/tests/${__base}*
-rm -rf ${__CONFIG_DIR}/tests/addons_origin*
+  # Deleting previous configuration
+  rm -rf ${__CONFIG_DIR}/openshift.local.*
+  rm -rf ${__CONFIG_DIR}/tests/${__base}*
+  rm -rf ${__CONFIG_DIR}/tests/addons_origin*
 
-systemctl start docker
+  systemctl start docker
 }
 
 # Checkout
 __checkout(){
-echo "[INFO] No origin source, so let's checkout and build it"
-mkdir -p ${__BUILD_DIR}
+  echo "[INFO] No origin source, so let's checkout and build it"
+  mkdir -p ${__BUILD_DIR}
 
-pushd ${__BUILD_DIR}
-echo "[INFO] Cloning $__REPO at branch ${__origin_branch}"
-git clone ${__REPO} -b ${__origin_branch}
+  pushd ${__BUILD_DIR}
+  echo "[INFO] Cloning $__REPO at branch ${__origin_branch}"
+  echo "git clone ${__REPO} -b ${__origin_branch}"
+  git clone ${__REPO} -b ${__origin_branch}
+  echo "[INFO] Repo cloned succesfully"
 
-[ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
-popd
+  [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
+  popd
 }
 
 # Update
 __update(){
-pushd ${__BUILD_DIR}/origin
-echo "[INFO] Updating to latest"
-git pull
-popd
+  pushd ${__BUILD_DIR}/origin
+  echo "[INFO] Updating to latest"
+  git pull
+  popd
 }
 
 build(){
-export GOPATH=/go
-export PATH=$PATH:$GOPATH/bin
+  export GOPATH=/go
+  export PATH=$PATH:$GOPATH/bin
 
-# If source is there we update
-if [ -e ${__BUILD_DIR}/origin ]
-then
-__update
-else
-# else we checkout
-__checkout
-fi
+  # If source is there we update
+  if [ -e ${__BUILD_DIR}/origin ]
+  then
+  __update
+  else
+  # else we checkout
+  __checkout
+  fi
 
-[ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
+  [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
 
-if [ ! -d ${__BUILD_DIR}/origin/_output ]
-then
-# We build
-cd ${__BUILD_DIR}/origin
-hack/build-go.sh
-# TODO: Test this
-if [ "${__build_images}" = "true" ]
-then
-hack/build-base-images.sh
-hack/build-release.sh
-hack/build-images.sh
-__version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
-fi
+  if [ ! -d ${__BUILD_DIR}/origin/_output ]
+  then
+  # We build
+  cd ${__BUILD_DIR}/origin
+  hack/build-go.sh
+  # TODO: Test this
+  if [ "${__build_images}" = "true" ]
+  then
+  hack/build-base-images.sh
+  hack/build-release.sh
+  hack/build-images.sh
+  __version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
+  fi
 
-# We copy the binaries into the <CONFIG_DIR>/bin and then link them
-mkdir -p ${__CONFIG_DIR}/bin
-pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
-for i in `ls *`; do cp -f ${i} ${__CONFIG_DIR}/bin; ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1; done
-popd
-fi
+  # We copy the binaries into the <CONFIG_DIR>/bin and then link them
+  mkdir -p ${__CONFIG_DIR}/bin
+  pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
+  for i in `ls *`; do cp -f ${i} ${__CONFIG_DIR}/bin; ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1; done
+  popd
+  fi
 }
 
 config(){
-[ -e ${__MASTER_CONFIG} ] && return 0
-echo "[INFO] Using images version ${__version}"
+  [ -e ${__MASTER_CONFIG} ] && return 0
+  echo "[INFO] Using images version ${__version}"
 
-echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
-echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
-echo "export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> /etc/profile.d/openshift.sh
-echo "export MASTER_CONFIG=${__MASTER_CONFIG}" >> /etc/profile.d/openshift.sh
+  echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
+  echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
+  echo "export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> /etc/profile.d/openshift.sh
+  echo "export MASTER_CONFIG=${__MASTER_CONFIG}" >> /etc/profile.d/openshift.sh
 
 
-# TODO: Fix permissions for openshift.local.config, openshift.local.etcd, openshift.local.volumes
-# Create initial configuration for Origin
-openshift start --public-master=${__public_address} \
-    --master=${__public_address} \
-    --etcd-dir=${__CONFIG_DIR}/openshift.local.etcd \
-    --write-config=${__CONFIG_DIR}/openshift.local.config \
-    --volume-dir=${__CONFIG_DIR}/openshift.local.volumes \
-    --images='openshift/origin-${component}:'${__version}
+  # TODO: Fix permissions for openshift.local.config, openshift.local.etcd, openshift.local.volumes
+  # Create initial configuration for Origin
+  openshift start --public-master=${__public_address} \
+      --master=${__public_address} \
+      --etcd-dir=${__CONFIG_DIR}/openshift.local.etcd \
+      --write-config=${__CONFIG_DIR}/openshift.local.config \
+      --volume-dir=${__CONFIG_DIR}/openshift.local.volumes \
+      --images='openshift/origin-${component}:'${__version}
 
-chmod 666 ${__CONFIG_DIR}/openshift.local.config/master/*
+  chmod 666 ${__CONFIG_DIR}/openshift.local.config/master/*
 
-# Now we need to make some adjustments to the config
-sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__public_hostname}/" ${__MASTER_CONFIG}
-# This options below should not be needed, as openshift-start is handling these
-#  -e "s/\(.*masterPublicURL:\).*/\1 https:\/\/${__public_address}:8443/g" \
-#  -e "s/\(.*publicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g" \
-#  -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g"
+  # Now we need to make some adjustments to the config
+  sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__public_hostname}/" ${__MASTER_CONFIG}
+  # This options below should not be needed, as openshift-start is handling these
+  #  -e "s/\(.*masterPublicURL:\).*/\1 https:\/\/${__public_address}:8443/g" \
+  #  -e "s/\(.*publicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g" \
+  #  -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/${__public_address}:8443\/console\//g"
 
   [ ! -d ${__CONFIG_DIR}/openshift.local.config/master ] && echo "[ERROR] There is no master config dir available at ${__CONFIG_DIR}/openshift.local.config/master" && exit 1
   # NOTE: If node name gets configurable, change this check and service file below
@@ -203,8 +205,8 @@ add_resources() {
                   --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig \
                   --mount-host=/opt/registry
 
-# TODO: Remove, as the configuration in 1.2 has changed to what can be seen up
-#    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
+    # TODO: Remove, as the configuration in 1.2 has changed to what can be seen up
+    #    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
 
     # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
     oc expose service docker-registry --hostname "hub.${__public_address}"

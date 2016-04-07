@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#
+# Maintainer: Jorge Morales <jmorales@redhat.com>
+#
+# Package a box for uploading into Atlas as an OpenShift Origin all-in-one release
+#
+# $1 : Origin version
+# $2 : Public host name
+
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+help() {
+   echo "This script will create a .box file ready to upload into Hashicorp's Atlas"
+   echo ""
+   echo " $0 <origin_version> <options>"
+   echo ""
+   echo "This will cerate a box named openshift3-origin-version.box"
+   echo ""
+   echo "Version format: 1.1.0  1.1.6  1.2.1.1" 
+}
+
+[ "$#" -lt 1 ] && help && exit 1
+
+ORIGIN_BRANCH="v$1"
+: ${CONFIG:=$2}
+
+if [ ! -z $CONFIG ]; then
+  __config="CONFIG=$CONFIG"
+fi  
+
+pushd ..
+
+# TODO: There's no checks, so it will run through the end even if it fails
+
+# Execute the provisioning script
+ORIGIN_BRANCH=${ORIGIN_BRANCH} ${__config} vagrant up
+# Clean the box
+vagrant ssh -c 'sudo /utils/pre-package.sh'
+#
+vagrant halt
+#
+vagrant package --base origin --output release/openshift3-origin-${ORIGIN_BRANCH}.box --vagrantfile release/Vagrantfile
+popd
