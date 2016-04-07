@@ -6,15 +6,19 @@
 # https://github.com/openshift/origin/blob/master/examples/sample-app/application-template-stibuild.json
 
 
-
-# This script must be run as root
-[ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
-
 # Set magic variables for current file & dir
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 
-# Remove Non used containers
+# This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
+#to address the vagrant bug - run these as the vagrant user
+curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
+chmod 700 /home/vagrant/.ssh
+chmod 600 /home/vagrant/.ssh/authorized_keys
+chown -R vagrant:vagrant /home/vagrant/.ssh
+oc edit scc restricted #change RunAsUser to RunAsAny
+
+# Remove Non used containers  - run as root
 _exited=$(docker ps -aqf "status=exited")
 [ "" != "${_exited}" ] && echo "[INFO] Deleting exited containers" && docker rm -vf ${_exited}
 
@@ -57,34 +61,12 @@ rm -f /var/log/anaconda/*
 rm -f /var/log/audit/*
 rm -f /var/log/*.log
 
-# This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
-curl -s http://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
-chmod 700 /home/vagrant/.ssh
-chmod 600 /home/vagrant/.ssh/authorized_keys
-chown -R vagrant:vagrant /home/vagrant/.ssh
-
-########## NOTES From TheSteve0
-#
-#for Postgres from Crunchy to work run as root
-#in /etc/passwd:
-#postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash
-
-#in /etc/group:
-#postgres:x:26:
-#
-###########
-
 # Compact disk space
 echo "[INFO] Compacting disk"
 dd if=/dev/zero of=/EMPTY bs=1M
 rm -f /EMPTY
 sync
 
-#final step, to be run on the host
-echo "Box is ready to be packaged"
-echo "Execute on your host:"
-echo " "
-echo " vagrant package --base origin --output openshift3-origin.box --vagrantfile ~/openshiftVagrant/Vagrantfile"
-echo " "
-echo " "
-echo "And then upload openshift3-origin.box to Atlas"
+#final step
+# vagrant package --base origin --output openshift3-1.1.1.1.box --vagrantfile ~/openshiftVagrant/Vagrantfile
+# then upload it to Atlas
