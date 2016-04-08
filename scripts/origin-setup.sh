@@ -40,7 +40,7 @@ __build_images=$6
 __version="latest"
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
 # Using http instead of https for allowing to local cache with squid for faster provisionings
-__REPO="http://github.com/${__origin_repo}/origin.git"
+__REPO="https://github.com/${__origin_repo}/origin.git"
 
 [ ! -z ${FORCE_ORIGIN} ] && echo "[INFO] Forcing reinstallation of things" && rm ${__TESTS_DIR}/${__base}.*.configured
 
@@ -86,10 +86,18 @@ __checkout(){
   mkdir -p ${__BUILD_DIR}
 
   pushd ${__BUILD_DIR}
-  echo "[INFO] Cloning $__REPO at branch ${__origin_branch}"
-  echo "git clone ${__REPO} -b ${__origin_branch}"
-  git clone ${__REPO} -b ${__origin_branch}
-  echo "[INFO] Repo cloned succesfully"
+  echo "[INFO] Cloning $__REPO"
+  git clone ${__REPO}
+  [ "$?" -ne 0 ] && echo "[ERROR] Error cloning the repository" && exit 1
+  echo "[INFO] Cloned"
+  if [[ "${__origin_branch}" != "master" ]]; then
+    echo "[INFO] Switching to specified branch ${__origin_branch}"
+    pushd ${__BUILD_DIR}/origin
+    git checkout -b ${__origin_branch}
+    [ "$?" -ne 0 ] && echo "[ERROR] Error switching to branch ${__origin_branch}" && exit 1
+    echo "[INFO] Switched"
+    popd
+  fi
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
   popd
@@ -110,33 +118,33 @@ build(){
   # If source is there we update
   if [ -e ${__BUILD_DIR}/origin ]
   then
-  __update
+    __update
   else
-  # else we checkout
-  __checkout
+    # else we checkout
+    __checkout
   fi
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
 
   if [ ! -d ${__BUILD_DIR}/origin/_output ]
   then
-  # We build
-  cd ${__BUILD_DIR}/origin
-  hack/build-go.sh
-  # TODO: Test this
-  if [ "${__build_images}" = "true" ]
-  then
-  hack/build-base-images.sh
-  hack/build-release.sh
-  hack/build-images.sh
-  __version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
-  fi
+    # We build
+    cd ${__BUILD_DIR}/origin
+    hack/build-go.sh
+    # TODO: Test this
+    if [ "${__build_images}" = "true" ]
+    then
+      hack/build-base-images.sh
+      hack/build-release.sh
+      hack/build-images.sh
+      __version=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
+    fi
 
-  # We copy the binaries into the <CONFIG_DIR>/bin and then link them
-  mkdir -p ${__CONFIG_DIR}/bin
-  pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
-  for i in `ls *`; do cp -f ${i} ${__CONFIG_DIR}/bin; ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1; done
-  popd
+    # We copy the binaries into the <CONFIG_DIR>/bin and then link them
+    mkdir -p ${__CONFIG_DIR}/bin
+    pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
+    for i in `ls *`; do cp -f ${i} ${__CONFIG_DIR}/bin; ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1; done
+    popd
   fi
 }
 

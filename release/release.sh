@@ -8,6 +8,7 @@
 # $2 : Public host name
 
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__previous="$(cd $__dir/.. && pwd)"
 
 help() {
    echo "This script will create a .box file ready to upload into Hashicorp's Atlas"
@@ -28,16 +29,24 @@ if [ ! -z $CONFIG ]; then
   __config="CONFIG=$CONFIG"
 fi  
 
-pushd ..
+pushd ${__previous}
 
 # TODO: There's no checks, so it will run through the end even if it fails
 
 # Execute the provisioning script
 ORIGIN_BRANCH=${ORIGIN_BRANCH} ${__config} vagrant up
+
+# Before packaging we need to make sure that everything has been provisioned correcly and that provisioning has finished
+# TODO:
+sleep 300 # For now, we'll wait 5 minutes
+
 # Clean the box
 vagrant ssh -c 'sudo /utils/pre-package.sh'
+
 #
 vagrant halt
+
 #
 vagrant package --base origin --output release/openshift3-origin-${ORIGIN_BRANCH}.box --vagrantfile release/Vagrantfile
+
 popd
