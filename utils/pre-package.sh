@@ -58,6 +58,7 @@ rm -f /var/log/audit/*
 rm -f /var/log/*.log
 
 # This is required to solve a bug with Vagrant > 1.7 < 1.8 when repackaging the box for redistribution
+echo "[INFO] Adding public key to package the box"
 curl -s https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > /home/vagrant/.ssh/authorized_keys
 chmod 700 /home/vagrant/.ssh
 chmod 600 /home/vagrant/.ssh/authorized_keys
@@ -66,10 +67,9 @@ chown -R vagrant:vagrant /home/vagrant/.ssh
 ########## NOTES From TheSteve0
 #
 #for Postgres from Crunchy to work run as root
-#in /etc/passwd:
-cat "postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash" >> /etc/passwd
-#in /etc/group:
-cat "postgres:x:26:" >> /etc/group
+echo "[INFO] Adding postgres user"
+groupadd -g 26 postgres
+useradd -u 26 -g 26 -M -N -d /var/lib/psql -s /bin/bash postgres
 #
 ###########
 
@@ -78,12 +78,3 @@ echo "[INFO] Compacting disk"
 dd if=/dev/zero of=/EMPTY bs=1M
 rm -f /EMPTY
 sync
-
-#final step, to be run on the host
-echo "Box is ready to be packaged"
-echo "Execute on your host:"
-echo " "
-echo " vagrant package --base origin --output openshift3-origin.box --vagrantfile ~/openshiftVagrant/Vagrantfile"
-echo " "
-echo " "
-echo "And then upload openshift3-origin.box to Atlas"
