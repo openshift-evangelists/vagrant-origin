@@ -36,7 +36,7 @@ pushd ..
 ORIGIN_BRANCH=${ORIGIN_BRANCH} ${__config} vagrant up
 # Clean the box
 vagrant ssh -c 'sudo /utils/pre-package.sh'
-#
+# technically not needed since package will cleanly halt the machine as well
 vagrant halt
 #
 vagrant package --base origin --output release/openshift3-origin-${ORIGIN_BRANCH}.box --vagrantfile release/Vagrantfile
