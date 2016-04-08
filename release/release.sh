@@ -44,6 +44,16 @@ sleep 300 # For now, we'll wait 5 minutes
 vagrant ssh -c 'sudo /utils/pre-package.sh'
 
 # vagrant package will halt the box for you
+if [ -f release/openshift3-origin-${ORIGIN_BRANCH}.box ]; then
+   echo "As there was a box already with that name, we will move it, appending timestamp"
+   mv release/openshift3-origin-${ORIGIN_BRANCH}.box release/openshift3-origin-${ORIGIN_BRANCH}.box.$(date "+%Y%m%d%H%M%S")
+fi   
 vagrant package --base origin --output release/openshift3-origin-${ORIGIN_BRANCH}.box --vagrantfile release/Vagrantfile
+
+echo "If you want to try this locally, add it as: "
+echo ""
+echo "    vagrant box add --name thesteve0/openshift-origin release/openshift3-origin-${ORIGIN_BRANCH}.box"
+echo ""
+echo "otherwise, upload it to Atlas"
 
 popd
