@@ -43,10 +43,7 @@ sleep 300 # For now, we'll wait 5 minutes
 # Clean the box
 vagrant ssh -c 'sudo /utils/pre-package.sh'
 
-#
-vagrant halt
-
-#
+# vagrant package will halt the box for you
 vagrant package --base origin --output release/openshift3-origin-${ORIGIN_BRANCH}.box --vagrantfile release/Vagrantfile
 
 popd
