@@ -58,6 +58,8 @@ if [ -f ${__TESTS_DIR}/${__base}.osetemplates.wanted ]; then
 
   template_list=(
     ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
+    ## NodeJS S2I image streams (recent releases not covered by SCL)
+    https://raw.githubusercontent.com/ryanj/origin-s2i-nodejs/master/image-streams.json
     ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
     http://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
     ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
