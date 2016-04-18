@@ -59,35 +59,35 @@ if [ -f ${__TESTS_DIR}/${__base}.osetemplates.wanted ]; then
   template_list=(
     ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
     ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
-    http://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
+    https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
     ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/jboss-image-streams.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/jboss-image-streams.json
     ## Fuse Image Streams
-    http://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
+    https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
     # EAP
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-persistent-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-basic-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-https-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-persistent-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-persistent-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-persistent-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-amq-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-basic-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-https-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mongodb-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-mysql-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-persistent-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/eap/eap64-postgresql-s2i.json
     # DecisionServer
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-amq-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-basic-s2i.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-https-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-amq-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-basic-s2i.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/decisionserver/decisionserver62-https-s2i.json
     # Fuse
     ## No templates. They are created by mvn:io.fabric8.archetypes
     # DataGrid
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-basic.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-https.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql-persistent.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql-persistent.json
-    http://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-basic.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-https.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql-persistent.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-mysql.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql-persistent.json
+    https://raw.githubusercontent.com/jboss-openshift/application-templates/${template_ose_tag}/datagrid/datagrid65-postgresql.json
 
   )
 
@@ -119,7 +119,7 @@ if [ -f ${__TESTS_DIR}/${__base}.metrics.wanted ]; then
   if [ ! -f ${__TESTS_DIR}/${__base}.metrics.configured ]; then
     echo "[INFO] Creating and configuring metrics"
    
-    oc create -f http://raw.githubusercontent.com/openshift/origin-metrics/master/metrics-deployer-setup.yaml -n openshift-infra
+    oc create -f https://raw.githubusercontent.com/openshift/origin-metrics/master/metrics-deployer-setup.yaml -n openshift-infra
     oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer -n openshift-infra
     oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster -n openshift-infra
     oc secrets new metrics-deployer nothing=/dev/null -n openshift-infra

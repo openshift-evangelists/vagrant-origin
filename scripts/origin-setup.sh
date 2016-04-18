@@ -29,7 +29,6 @@ __TESTS_DIR=${__CONFIG_DIR}/tests
 __BIN_DIR=${__CONFIG_DIR}/bin
 
 mkdir -p ${__TESTS_DIR}
-unalias cp # As by default, cp is aliased to "cp -i"
 
 __public_address=$1
 __public_hostname=$2
@@ -216,14 +215,14 @@ add_resources() {
     chmod 777 /opt/registry
 
     oc create serviceaccount registry -n default
-    oadm policy add-scc-to-user privileged system:serviceaccount:default:registry
-    oadm registry --service-account=registry \
-                  --config=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig \
-                  --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig \
-                  --mount-host=/opt/registry
+    oc adm policy add-scc-to-user privileged system:serviceaccount:default:registry
+    oc adm registry --service-account=registry \
+                    --config=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig \
+                    --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig \
+                    --mount-host=/opt/registry
 
     # TODO: Remove, as the configuration in 1.2 has changed to what can be seen up
-    #    oadm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
+    #    oc adm registry --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-registry.kubeconfig
 
     # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
     oc expose service docker-registry --hostname "hub.${__public_address}"
@@ -236,11 +235,11 @@ add_resources() {
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.router.configured ]; then
     echo "[INFO] Creating the OpenShift Router"
     ## Add Router Service Account to default namespace
-    echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"router","namespace":"default"}}' | oc create -f -
+    oc create serviceaccount router -n default
     ## Add router ServiceAccount to privileged SCC
-    oc get scc privileged -o json  | sed '/\"users\"/a \"system:serviceaccount:default:router\",' | oc replace scc privileged -f -
+    oc policy add-scc-to-user privileged system:serviceaccount:default:router
     ## Create the router
-    oadm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router
+    oc adm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router
 
     touch ${__CONFIG_DIR}/tests/${__base}.router.configured
   fi
@@ -249,7 +248,7 @@ add_resources() {
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.users.configured ]; then
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
-    oadm policy add-cluster-role-to-user cluster-admin admin
+    oc adm policy add-cluster-role-to-user cluster-admin admin
 
     touch ${__CONFIG_DIR}/tests/${__base}.users.configured
   fi
@@ -258,7 +257,7 @@ add_resources() {
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.anyuid.configured ]; then
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
-    oadm policy add-scc-to-group anyuid system:authenticated
+    oc adm policy add-scc-to-group anyuid system:authenticated
 
     touch ${__CONFIG_DIR}/tests/${__base}.anyuid.configured
   fi
