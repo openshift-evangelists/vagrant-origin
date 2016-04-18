@@ -272,20 +272,22 @@ add_resources() {
       ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
       ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
       ## Wildfly 8.1
-      http://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
       # DB templates (Centos)
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-ephemeral-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mongodb-persistent-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-ephemeral-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/mysql-persistent-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-ephemeral-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/db-templates/postgresql-persistent-template.json
       # Jenkins (Centos)
-      http://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json
-      http://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-ephemeral-template.json
+      https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json
       # Node.js (Centos)
-      http://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
-      http://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
+      https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json
+      https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
+      ## NodeJS S2I image streams (recent releases not covered by SCL)
+      https://raw.githubusercontent.com/ryanj/origin-s2i-nodejs/master/image-streams.json
     )
 
     for template in ${template_list[@]}; do
@@ -354,7 +356,7 @@ EOF
 #    echo "[INFO] Creating sample app"
     ## Add admin as a cluster-admin
 #    oc new-project turbo --display-name="Turbo Sample" --description="This is an example project to demonstrate OpenShift v3"
-#    oc process -f http://raw.githubusercontent.com/openshift/origin/master/examples/sample-app/application-template-stibuild.json | oc create -n turbo -f -
+#    oc process -f https://raw.githubusercontent.com/openshift/origin/master/examples/sample-app/application-template-stibuild.json | oc create -n turbo -f -
     # curl -skL -w "%{http_code} %{url_effective}\\n" -o /tmp/output -H 'Host: www.example.com' https://localhost:443
 
 #    touch ${__CONFIG_DIR}/tests/${__base}.sample.configured
