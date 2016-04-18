@@ -288,6 +288,8 @@ add_resources() {
       https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json
       ## NodeJS S2I image streams (recent releases not covered by SCL)
       https://raw.githubusercontent.com/ryanj/origin-s2i-nodejs/master/image-streams.json
+      # Warpdrive-python
+      https://raw.githubusercontent.com/GrahamDumpleton/warpdrive/master/openshift/warpdrive-python.json
     )
 
     for template in ${template_list[@]}; do
