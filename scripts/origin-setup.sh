@@ -29,6 +29,7 @@ __TESTS_DIR=${__CONFIG_DIR}/tests
 __BIN_DIR=${__CONFIG_DIR}/bin
 
 mkdir -p ${__TESTS_DIR}
+unalias cp # As by default, cp is aliased to "cp -i"
 
 __public_address=$1
 __public_hostname=$2
@@ -135,7 +136,22 @@ build(){
     # We copy the binaries into the <CONFIG_DIR>/bin and then link them
     mkdir -p ${__CONFIG_DIR}/bin
     pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
-    for i in `ls *`; do cp -f ${i} ${__CONFIG_DIR}/bin; ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1; done
+    for i in `ls *`
+    do 
+      cp -f ${i} ${__CONFIG_DIR}/bin
+      ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1
+    done
+    popd
+
+    # Add bash completions
+    mkdir -p ${__CONFIG_DIR}/bin/bash
+    pushd ${__BUILD_DIR}/origin/contrib/completions/bash/
+    for i in `ls *`
+    do
+      cp -f ${i} ${__CONFIG_DIR}/bin/bash
+      ln -s ${__CONFIG_DIR}/bin/bash/${i} /etc/bash_completion.d/ > /dev/null 2>&1
+    done  
+
     popd
   fi
 }
@@ -187,6 +203,7 @@ config(){
   WantedBy=multi-user.target
 EOF
   systemctl enable origin
+
 }
 
 add_resources() {
