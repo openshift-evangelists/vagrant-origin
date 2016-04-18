@@ -86,18 +86,10 @@ __checkout(){
   mkdir -p ${__BUILD_DIR}
 
   pushd ${__BUILD_DIR}
-  echo "[INFO] Cloning $__REPO"
-  git clone ${__REPO}
+  echo "[INFO] Cloning $__REPO to specified branch ${__origin_branch}"
+
+  git clone --single-branch --branch=${__origin_branch} ${__REPO}
   [ "$?" -ne 0 ] && echo "[ERROR] Error cloning the repository" && exit 1
-  echo "[INFO] Cloned"
-  if [[ "${__origin_branch}" != "master" ]]; then
-    echo "[INFO] Switching to specified branch ${__origin_branch}"
-    pushd ${__BUILD_DIR}/origin
-    git checkout -b ${__origin_branch}
-    [ "$?" -ne 0 ] && echo "[ERROR] Error switching to branch ${__origin_branch}" && exit 1
-    echo "[INFO] Switched"
-    popd
-  fi
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
   popd
