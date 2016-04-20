@@ -237,7 +237,7 @@ add_resources() {
     ## Add Router Service Account to default namespace
     oc create serviceaccount router -n default
     ## Add router ServiceAccount to privileged SCC
-    oc policy add-scc-to-user privileged system:serviceaccount:default:router
+    oc adm policy add-scc-to-user privileged system:serviceaccount:default:router
     ## Create the router
     oc adm router --create --credentials=${__CONFIG_DIR}/openshift.local.config/master/openshift-router.kubeconfig --service-account=router
 
