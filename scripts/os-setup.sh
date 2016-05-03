@@ -43,7 +43,12 @@ then
    done   
 
    # Install additional packages
-   dnf install -y docker git golang bind-utils bash-completion; dnf clean all
+   dnf install -y strace
+   dnf install -y gdb
+   dnf install -y vim
+   dnf install -y docker git golang bind-utils bash-completion
+   dnf install -y kernel-debug-modules-extra
+   dnf clean all
    # TODO: Maybe update the whole box with: dnf update
 
    # Fail if commands have not been installed
