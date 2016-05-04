@@ -22,6 +22,7 @@ __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 # This script must be run as root
 [ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
 
+
 __base="prerequisites"
 __BUILD_DIR="/go/src/github.com/openshift"
 __CONFIG_DIR="/var/lib/origin"
@@ -45,7 +46,6 @@ then
    # Install additional packages
    dnf install -y strace
    dnf install -y gdb
-   dnf install -y vim
    dnf install -y docker git golang bind-utils bash-completion
    dnf install -y kernel-debug-modules-extra
    dnf clean all
@@ -63,6 +63,17 @@ then
    # Add go environment to be able to build
    echo 'export GOPATH=/go' > /etc/profile.d/go.sh
    echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> /etc/profile.d/go.sh
+
+   # Path grub2 to use config to use the right entry, this is bad but it works for now
+   # this loads the correct kernel after reboots
+   sed -i "s/GRUB_DEFAULT=saved/GRUB_DEFAULT=1/g" /etc/default/grub
+   grub2-mkconfig -o /boot/grub2/grub.cfg
+
+   # Load modules needed by the traffic controller
+   # need reboot to be effective
+   touch /etc/modules-load.d/traffic-control.conf
+   echo 'ifb' > /etc/modules-load.d/traffic-control.conf
+   echo 'sch_netem' >> /etc/modules-load.d/traffic-control.conf
 
    touch ${__TESTS_DIR}/${__base}.status.configured
 fi
