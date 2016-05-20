@@ -27,13 +27,6 @@ _untagged=$(docker images | grep "<none>" | awk '{print $3}')
 _dangling=$(docker images -f "dangling=true" -q)
 [ "" != "${_dangling}" ] && echo "[INFO] Deleting dangling images" && docker rmi ${_dangling}
 
-#for Postgres from Crunchy to work run as root
-#in /etc/passwd:
-#postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash
-
-#in /etc/group:
-#postgres:x:26:
-
 # Stop services - run as root from here on out
 echo "[INFO] Stopping Origin service"
 systemctl stop origin

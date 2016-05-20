@@ -262,6 +262,15 @@ add_resources() {
     touch ${__CONFIG_DIR}/tests/${__base}.anyuid.configured
   fi
 
+  if [ ! -f ${__CONFIG_DIR}/tests/${__base}.cockpit.configured ]; then
+    echo "[INFO] Creating cockpit as administrative project"
+    oc adm new-project cockpit
+    oc create -f ${__dir}/cockpit.json -n cockpit
+    echo "[INFO] Cockpit is available at http://cockpit.apps.10.2.2.2.xip.io"
+
+    touch ${__CONFIG_DIR}/tests/${__base}.cockpit.configured
+  fi
+
   # Installing templates into OpenShift
   if [ ! -f ${__CONFIG_DIR}/tests/${__base}.templates.configured ]; then
     echo "[INFO] Installing Origin templates"
