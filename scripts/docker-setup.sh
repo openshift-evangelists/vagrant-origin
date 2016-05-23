@@ -37,6 +37,10 @@ if [ ! -f ${__TESTS_DIR}/${__base}.status.configured ]
 then
    systemctl stop docker
 
+   # Add docker capabilities to vagrant user
+   groupadd docker
+   usermod -aG docker vagrant
+
    # TODO: Find why Origin does not start in enforcing
    sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
    sudo setenforce 0
