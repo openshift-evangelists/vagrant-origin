@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#
+# Maintainer: Jorge Morales <jmorales@redhat.com>
+#
+#
+# Functions
+. /scripts/base/common_functions
+
+must_run_as_root
+load_configuration
+
+DOCKER-Setup(){
+   if marker_check "docker.setup"; then
+      systemctl stop docker
+
+      # Add docker capabilities to vagrant user
+      groupadd docker
+      usermod -aG docker vagrant
+
+      # TODO: Find why Origin does not start in enforcing
+      sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+      sudo setenforce 0
+      echo "[WARN] Set SELinux to permissive for now"
+
+      ##  Enable the internal registry and configure the Docker to allow pushing to internal OpenShift registry
+      echo "[INFO] Configuring Docker for Red Hat registry and else ..."
+      sed -i -e "s/^.*INSECURE_REGISTRY=.*/INSECURE_REGISTRY='--insecure-registry 0\.0\.0\.0\/0 '/" /etc/sysconfig/docker 
+      sed -i -e "s/^.*OPTIONS=.*/OPTIONS='--selinux-enabled --storage-opt dm\.no_warn_on_loop_devices=true --storage-opt dm\.loopdatasize=${__OS_DOCKER_STORAGE_SIZE}'/" /etc/sysconfig/docker
+      # sed -i -e "s/^.*ADD_REGISTRY=.*/ADD_REGISTRY='--add-registry registry\.access\.redhat\.com'/" /etc/sysconfig/docker 
+
+      ## Disable firewall
+      systemctl stop firewalld; systemctl disable firewalld 
+      systemctl start docker; systemctl enable docker
+
+      marker_create "docker.setup"
+   fi 
+}

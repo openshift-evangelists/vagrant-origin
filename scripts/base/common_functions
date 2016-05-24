@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# Maintainer: Jorge Morales <jmorales@redhat.com>
+#
+#
+# Functions
+
+# This script must be run as root
+must_run_as_root(){
+   [ "$UID" -ne 0 ] && echo "To run this script you need root permissions (either root or sudo)" && exit 1
+}
+
+# Checks for existance of marker file
+# $1: marker name
+marker_check(){
+   [ -f ${__TESTS_DIR}/$1.configured ] && return 1 || return 0
+}
+
+# Creates marker file
+# $1: marker name
+marker_create(){
+   touch ${__TESTS_DIR}/$1.configured
+}
+
+# Load Configuration file
+load_configuration(){
+   if [ -z ${__SETUP_CONFIGURED} ]
+   then   
+      . /config/config.env
+      echo "[INFO] Script succesfully configured"
+      export __SETUP_CONFIGURED=1
+      print_configuration
+   fi
+}
+
+# Print environment configuration needed for the scripts.
+# It will fail execution if configuration is not available
+print_configuration(){
+   if [ -z ${__SETUP_CONFIGURED} ]
+   then
+      echo "[ERROR] Environment variables not set"
+      exit 1
+   else
+      echo "[INFO] Configuration properly exported" 
+      printenv | egrep "^__OS_"
+   fi
+}

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Maintainer: Jorge Morales <jmorales@redhat.com>
+#
+#
+# Functions
+. /scripts/base/common_functions
+
+must_run_as_root
+load_configuration
+
+OS-Setup(){
+   if marker_check "os.status"; then
+      # Install additional packages
+      dnf install -y docker git golang bind-utils bash-completion htop nfs-utils; dnf clean all
+      # TODO: Maybe update the whole box with: dnf update
+
+      # Fail if commands have not been installed
+      [ "$(which docker)" = "" ] && echo "[ERROR] Docker is not properly installed" && exit 1
+      [ "$(which git)" = "" ] && echo "[ERROR] Git is not properly installed" && exit 1
+      [ "$(which go)" = "" ] && echo "[ERROR] Go is not properly installed" && exit 1
+
+      # Update journal size so it doesn't grow forever
+      sed -i -e "s/.*SystemMaxUse.*/SystemMaxUse=${__OS_JOURNAL_SIZE}/" /etc/systemd/journald.conf
+      systemctl restart systemd-journald
+
+      # Add go environment to be able to build
+      echo 'export GOPATH=/go' > /etc/profile.d/go.sh
+      echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> /etc/profile.d/go.sh
+
+      marker_create "os.status"   
+   fi
+}
