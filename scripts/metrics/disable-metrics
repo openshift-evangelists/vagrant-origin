@@ -1,0 +1,4 @@
+# This script will scale metrics RC to 0 (a.k.a. disable metrics)
+oc scale rc/hawkular-metrics --replicas=0 -n openshift-infra
+oc scale rc/hawkular-cassandra-1 --replicas=0 -n openshift-infra
+oc scale rc/heapster --replicas=0 -n openshift-infra

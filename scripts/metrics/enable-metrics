@@ -1,0 +1,4 @@
+# This script will scale metrics RC to 1 (a.k.a. enable metrics)
+oc scale rc/heapster --replicas=1 -n openshift-infra
+oc scale rc/hawkular-cassandra-1 --replicas=1 -n openshift-infra
+oc scale rc/hawkular-metrics --replicas=1 -n openshift-infra
