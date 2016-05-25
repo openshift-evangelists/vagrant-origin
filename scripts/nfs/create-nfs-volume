@@ -25,6 +25,8 @@ fi
 
 # Create this volume
 mkdir -p /nfsvolumes/${__volume}
+chown nfsnobody:nfsnobody /nfsvolumes/${__volume}
+chmod 777 /nfsvolumes/${__volume}
 
 # Add the volume to /etc/exports and reload
 echo "/nfsvolumes/${__volume} *(rw,root_squash)" >> /etc/exports
