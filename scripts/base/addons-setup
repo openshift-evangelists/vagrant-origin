@@ -43,33 +43,33 @@ xpaastemplates-setup(){
        ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
        https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
        ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/jboss-image-streams.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/jboss-image-streams.json
        ## Fuse Image Streams
        https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
        # EAP
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-amq-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-amq-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-basic-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-https-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mongodb-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mongodb-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mysql-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mysql-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-postgresql-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-postgresql-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-amq-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-amq-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-basic-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-https-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-mongodb-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-mongodb-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-mysql-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-mysql-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-postgresql-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/eap/eap64-postgresql-s2i.json
        # DecisionServer
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-amq-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-basic-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-https-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/decisionserver/decisionserver62-amq-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/decisionserver/decisionserver62-basic-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/decisionserver/decisionserver62-https-s2i.json
        # Fuse
        ## No templates. They are created by mvn:io.fabric8.archetypes
        # DataGrid
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-basic.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-https.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-mysql-persistent.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-mysql.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-postgresql-persistent.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-postgresql.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-basic.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-https.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-mysql-persistent.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-mysql.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-postgresql-persistent.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_XPAAS_TAG}/datagrid/datagrid65-postgresql.json
 
      )
 

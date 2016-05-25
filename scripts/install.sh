@@ -44,7 +44,7 @@ load_configuration
 : ${__OS_DOCKER_STORAGE_SIZE:="30G"}
 : ${__OS_JOURNAL_SIZE:="100M"}
 : ${__OS_FORCE:=false}
-: ${__OS_TEMPLATE_OSE_TAG:="ose-v1.3.0-1"}
+: ${__OS_XPAAS_TAG:="ose-v1.3.0-1"}
 #
 ##################################################
 
