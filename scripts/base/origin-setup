@@ -15,7 +15,7 @@ __CONFIG_DIR="/var/lib/origin"
 __TESTS_DIR=${__CONFIG_DIR}/tests
 __BIN_DIR=${__CONFIG_DIR}/bin
 # CONSTANTS
-__VERSION="latest"
+export __VERSION=${__OS_IMAGES_VERSION}
 __MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
 __REPO="https://github.com/${__OS_ORIGIN_REPO}/origin.git"
 ##################################
@@ -114,7 +114,7 @@ BUILD(){
       hack/build-base-images.sh
       hack/build-release.sh
       hack/build-images.sh
-      __VERSION=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
+      export __VERSION=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
     fi
 
     # We copy the binaries into the <CONFIG_DIR>/bin and then link them

@@ -95,7 +95,7 @@ metrics-setup(){
        oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster -n openshift-infra
        oc secrets new metrics-deployer nothing=/dev/null -n openshift-infra
        # This file is placed in /scripts in the VM by Vagrant. If you change, adapt the path. 
-       oc process -f /scripts/metrics/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__OS_APPS_DOMAIN},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
+       oc process -f /scripts/metrics/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__OS_APPS_DOMAIN},USE_PERSISTENT_STORAGE=false,IMAGE_VERSION=${__VERSION} | oc create -n openshift-infra -f -
        # Add metricsPublicURL to master-config
        sed -i.orig -e "s/\(.*metricsPublicURL:\).*/\1 https:\/\/hawkular-metrics.${__OS_APPS_DOMAIN}\/hawkular\/metrics/g" ${__MASTER_CONFIG}
        systemctl restart origin
@@ -143,6 +143,7 @@ logging-setup(){
        oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:aggregated-logging-fluentd
        # Deploy EFK stack and configure all the created pods (Add these if you want ops cluster: KIBANA_OPS_HOSTNAME=kibana-ops.${__OS_APPS_DOMAIN},ENABLE_OPS_CLUSTER=true,ES_OPS_CLUSTER_SIZE=1)
        oc new-app logging-deployer-template \
+          -p IMAGE_VERSION=${__VERSION} \
           -p KIBANA_HOSTNAME=kibana.${__OS_APPS_DOMAIN} \
           -p ES_CLUSTER_SIZE=1 \
           -p PUBLIC_MASTER_URL=https://${__public_address}:8443

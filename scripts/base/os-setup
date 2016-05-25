@@ -11,6 +11,8 @@ load_configuration
 
 OS-Setup(){
    if marker_check "os.status"; then
+      # Enable go-lang 1.6 until official
+      dnf copr -y enable jcajka/golang1.6
       # Install additional packages
       dnf install -y docker git golang bind-utils bash-completion htop nfs-utils; dnf clean all
       # TODO: Maybe update the whole box with: dnf update
