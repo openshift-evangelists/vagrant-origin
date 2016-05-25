@@ -9,6 +9,80 @@
 must_run_as_root
 load_configuration
 
+osetemplates-setup(){
+      # Installing templates into OpenShift
+   if [ -f ${__TESTS_DIR}/addons.osetemplates.wanted ]; then
+     if [ ! -f ${__TESTS_DIR}/addons.osetemplates.configured ]; then
+       echo "[INFO] Installing OpenShift templates"
+
+     template_list=(
+       ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
+       ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
+       https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
+     )
+     for template in ${template_list[@]}; do
+         echo "[INFO] Importing template ${template}"
+         oc replace -f $template -n openshift >/dev/null
+       done
+       touch ${__TESTS_DIR}/addons.osetemplates.configured
+     fi
+
+     rm ${__TESTS_DIR}/addons.osetemplates.wanted
+   fi
+}
+
+
+xpaastemplates-setup(){
+      # Installing templates into OpenShift
+   if [ -f ${__TESTS_DIR}/addons.xpaastemplates.wanted ]; then
+     if [ ! -f ${__TESTS_DIR}/addons.xpaastemplates.configured ]; then
+       echo "[INFO] Installing xPaaS templates"
+
+     template_list=(
+       ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
+       ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
+       https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
+       ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/jboss-image-streams.json
+       ## Fuse Image Streams
+       https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
+       # EAP
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-amq-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-amq-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-basic-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-https-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mongodb-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mongodb-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mysql-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-mysql-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-postgresql-persistent-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/eap/eap64-postgresql-s2i.json
+       # DecisionServer
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-amq-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-basic-s2i.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/decisionserver/decisionserver62-https-s2i.json
+       # Fuse
+       ## No templates. They are created by mvn:io.fabric8.archetypes
+       # DataGrid
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-basic.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-https.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-mysql-persistent.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-mysql.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-postgresql-persistent.json
+       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_TEMPLATE_OSE_TAG}/datagrid/datagrid65-postgresql.json
+
+     )
+
+     for template in ${template_list[@]}; do
+         echo "[INFO] Importing template ${template}"
+         oc create -f $template -n openshift >/dev/null
+       done
+       touch ${__TESTS_DIR}/addons.xpaastemplates.configured
+     fi
+
+     rm ${__TESTS_DIR}/addons.xpaastemplates.wanted
+   fi
+}
 
 metrics-setup(){
       # Create metrics
@@ -21,14 +95,14 @@ metrics-setup(){
        oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster -n openshift-infra
        oc secrets new metrics-deployer nothing=/dev/null -n openshift-infra
        # This file is placed in /scripts in the VM by Vagrant. If you change, adapt the path. 
-       oc process -f /scripts/metrics/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__OS_apps_domain},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
+       oc process -f /scripts/metrics/metrics.yaml -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.${__OS_APPS_DOMAIN},USE_PERSISTENT_STORAGE=false | oc create -n openshift-infra -f -
        # Add metricsPublicURL to master-config
-       sed -i.orig -e "s/\(.*metricsPublicURL:\).*/\1 https:\/\/hawkular-metrics.${__OS_apps_domain}\/hawkular\/metrics/g" ${__MASTER_CONFIG}
+       sed -i.orig -e "s/\(.*metricsPublicURL:\).*/\1 https:\/\/hawkular-metrics.${__OS_APPS_DOMAIN}\/hawkular\/metrics/g" ${__MASTER_CONFIG}
        systemctl restart origin
        
        # Add capabilities to enable/disable metrics to every authenticated user
-       oc create -f /scripts/metrics/allinone-scaler-clusterrole.json
-       oc adm policy add-role-to-group allinone:scaler system:authenticated
+       oc create -f /scripts/metrics/allinone-metrics-scaler-clusterrole.json
+       oc adm policy add-role-to-group allinone:metrics-scaler system:authenticated -n openshift-infra
 
        echo "[INFO] Installing disable-metrics script"
        chmod 755 /scripts/metrics/disable-metrics
@@ -38,7 +112,7 @@ metrics-setup(){
        ln -s /scripts/metrics/enable-metrics /usr/local/bin/enable-metrics 
 
        echo ""
-       echo "[INFO] Please visit https:\/\/hawkular-metrics.${__OS_apps_domain} and accept the ssl certificate for the metrics to work"
+       echo "[INFO] Please visit https:\/\/hawkular-metrics.${__OS_APPS_DOMAIN} and accept the ssl certificate for the metrics to work"
        echo ""
 
        touch ${__TESTS_DIR}/addons.metrics.configured
@@ -56,25 +130,25 @@ logging-setup(){
        echo "[INFO] Creating and configuring logging"
 
        oc create -n openshift -f https://raw.githubusercontent.com/openshift/origin-aggregated-logging/master/deployer/deployer.yaml
-       oc adm new-project logging --node-selector=""
-       oc project logging
+       # oc adm new-project logging --node-selector=""
+       oc project openshift-infra
        oc secrets new logging-deployer nothing=/dev/null
        # This step creates all the required service accounts
        oc new-app logging-deployer-account-template
        # Modify the service accounts adding all the required roles
        oc policy add-role-to-user edit --serviceaccount logging-deployer
        oc policy add-role-to-user daemonset-admin --serviceaccount logging-deployer
-       oc adm policy add-cluster-role-to-user oauth-editor system:serviceaccount:logging:logging-deployer
-       oc adm policy add-scc-to-user privileged system:serviceaccount:logging:aggregated-logging-fluentd
-       oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:logging:aggregated-logging-fluentd
-       # Deploy EFK stack and configure all the created pods (Add these if you want ops cluster: KIBANA_OPS_HOSTNAME=kibana-ops.${__OS_apps_domain},ENABLE_OPS_CLUSTER=true,ES_OPS_CLUSTER_SIZE=1)
+       oc adm policy add-cluster-role-to-user oauth-editor system:serviceaccount:openshift-infra:logging-deployer
+       oc adm policy add-scc-to-user privileged system:serviceaccount:openshift-infra:aggregated-logging-fluentd
+       oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:aggregated-logging-fluentd
+       # Deploy EFK stack and configure all the created pods (Add these if you want ops cluster: KIBANA_OPS_HOSTNAME=kibana-ops.${__OS_APPS_DOMAIN},ENABLE_OPS_CLUSTER=true,ES_OPS_CLUSTER_SIZE=1)
        oc new-app logging-deployer-template \
-          -p KIBANA_HOSTNAME=kibana.${__OS_apps_domain} \
+          -p KIBANA_HOSTNAME=kibana.${__OS_APPS_DOMAIN} \
           -p ES_CLUSTER_SIZE=1 \
           -p PUBLIC_MASTER_URL=https://${__public_address}:8443
        oc label nodes --all logging-infra-fluentd=true
 
-       sed -i.orig -e "s/\(.*loggingPublicURL:\).*/\1 \"https:\/\/kibana.${__OS_apps_domain}\"/" ${__MASTER_CONFIG}
+       sed -i.orig -e "s/\(.*loggingPublicURL:\).*/\1 \"https:\/\/kibana.${__OS_APPS_DOMAIN}\"/" ${__MASTER_CONFIG}
        
        systemctl restart origin
 
@@ -82,11 +156,18 @@ logging-setup(){
        while [ `oc get pods --no-headers | grep Running | wc -l` -eq 0 ]; do sleep 1; done
        echo "Configuring resources"
        while [ `oc get pods --no-headers | grep Running | wc -l` -eq 1 ]; do sleep 1; done
-       echo "Done"
-#       oc new-app logging-support-template 
        echo "Logging ready"
 
-       echo ""
+       # Add capabilities to enable/disable logging to every authenticated user
+       oc create -f /scripts/logging/allinone-logging-scaler-clusterrole.json
+       oc adm policy add-role-to-group allinone:logging-scaler system:authenticated -n openshift-infra
+
+       echo "[INFO] Installing disable-logging script"
+       chmod 755 /scripts/logging/disable-logging
+       ln -s /scripts/logging/disable-logging /usr/local/bin/disable-logging 
+       echo "[INFO] Installing enable-logging script"
+       chmod 755 /scripts/logging/enable-logging
+       ln -s /scripts/logging/enable-logging /usr/local/bin/enable-logging 
 
        touch ${__TESTS_DIR}/addons.logging.configured
      fi
@@ -95,82 +176,28 @@ logging-setup(){
    fi
 }
 
-ADDONS-Setup(){
-
-   # TODO: Depending on the action, delete control files
-   arr=$(echo ${__OS_config} | tr "," "\n")
-   for x in ${arr}
-   do
-      touch ${__TESTS_DIR}/addons.${x}.wanted
-   done
-
-   # Installing templates into OpenShift
-   if [ -f ${__TESTS_DIR}/addons.osetemplates.wanted ]; then
-     if [ ! -f ${__TESTS_DIR}/addons.osetemplates.configured ]; then
-       echo "[INFO] Installing OpenShift templates"
-
-     template_list=(
-       ## SCL: Ruby 2, Ruby 2.2, Node.js 0.10, Perl 5.16, Perl 5.20, PHP 5.5, PHP 5.6, Python 3.4, Python 3.3, Python 2.7)
-       ## Databases: Mysql 5.5, Mysql 5.6, PostgreSQL 9.2, PostgreSQL 9.4, Mongodb 2.4, Mongodb 2.6, Jenkins
-       https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-rhel7.json    
-       ## JBoss Image streams(JWS, EAP, JDG, BRMS, AMQ)
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/jboss-image-streams.json
-       ## Fuse Image Streams
-       https://raw.githubusercontent.com/jboss-fuse/application-templates/master/fis-image-streams.json
-       # EAP
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-amq-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-amq-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-basic-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-https-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-mongodb-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-mongodb-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-mysql-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-mysql-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-postgresql-persistent-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/eap/eap64-postgresql-s2i.json
-       # DecisionServer
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/decisionserver/decisionserver62-amq-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/decisionserver/decisionserver62-basic-s2i.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/decisionserver/decisionserver62-https-s2i.json
-       # Fuse
-       ## No templates. They are created by mvn:io.fabric8.archetypes
-       # DataGrid
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-basic.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-https.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-mysql-persistent.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-mysql.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-postgresql-persistent.json
-       https://raw.githubusercontent.com/jboss-openshift/application-templates/${__OS_template_ose_tag}/datagrid/datagrid65-postgresql.json
-
-     )
-
-       for template in ${template_list[@]}; do
-         echo "[INFO] Importing template ${template}"
-         oc create -f $template -n openshift >/dev/null
-       done
-       touch ${__TESTS_DIR}/addons.osetemplates.configured
-     fi
-
-     rm ${__TESTS_DIR}/addons.osetemplates.wanted
-   fi
-
+testusers-setup(){
    # Create users
    if [ -f ${__TESTS_DIR}/addons.testusers.wanted ]; then
      if [ ! -f ${__TESTS_DIR}/addons.testusers.configured ]; then
        echo "[INFO] Creating and configuring test users"
       
-       ## Add whatever user you might want
-       # oadm policy add-cluster-role-to-user cluster-admin admin 
+       useradd -m -N -g vagrant dev;  echo dev  | passwd dev --stdin
+       # TODO: Add .kube profile with the user logged in
+       echo "[INFO] User dev created"
+       useradd -m -N -g vagrant test; echo test | passwd test --stdin
+       echo "[INFO] User test created"
+       useradd -m -N -g vagrant prod; echo prod | passwd prod --stdin
+       echo "[INFO] User prod created"
+
        touch ${__TESTS_DIR}/addons.testusers.configured
      fi
       
      rm ${__TESTS_DIR}/addons.testusers.wanted
    fi
+}
 
-   metrics-setup
-
-   logging-setup
-
+origin-images-setup(){
    origin_image_list=(
          # Origin images
          docker.io/openshift/origin-deployer:latest
@@ -190,7 +217,23 @@ ADDONS-Setup(){
          docker.io/openshift/origin-metrics-heapster:latest
          docker.io/openshift/origin-metrics-cassandra:latest
    )
+   # Pull down images
+   if [ -f ${__TESTS_DIR}/addons.originimages.wanted ]
+   then
+     if [ ! -f ${__TESTS_DIR}/addons.originimages.configured ]
+     then
+       echo "[INFO] Downloading Origin images"
+       for image in ${origin_image_list[@]}; do
+          echo "[INFO] Downloading image ${image}"
+          docker pull $image
+       done
+       touch ${__TESTS_DIR}/addons.originimages.configured
+     fi 
+     rm ${__TESTS_DIR}/addons.originimages.wanted
+   fi
+}
 
+centos-images-setup(){
    centos_image_list=(
          # Centos SCL
          docker.io/openshift/jenkins-1-centos7:latest
@@ -205,6 +248,22 @@ ADDONS-Setup(){
          # Add wildfly
    )
 
+   if [ -f ${__TESTS_DIR}/addons.centosimages.wanted ]
+   then
+     if [ ! -f ${__TESTS_DIR}/addons.centosimages.configured ]
+     then
+       echo "[INFO] Downloading CENTOS7 based images"
+       for image in ${centos_image_list[@]}; do
+          echo "[INFO] Downloading image ${image}"
+          docker pull $image
+       done
+       touch ${__TESTS_DIR}/addons.centosimages.configured
+     fi
+     rm ${__TESTS_DIR}/addons.centosimages.wanted
+   fi
+}   
+
+rhel-images-setup(){
    rhel_image_list=(
          # RHEL SCL
          registry.access.redhat.com/openshift3/jenkins-1-rhel7:latest
@@ -219,6 +278,22 @@ ADDONS-Setup(){
          # RHEL images
    )
 
+   if [ -f ${__TESTS_DIR}/addons.rhelimages.wanted ]
+   then
+     if [ ! -f ${__TESTS_DIR}/addons.rhelimages.configured ]
+     then
+       echo "[INFO] Downloading RHEL7 based images"
+       for image in ${rhel_image_list[@]}; do
+          echo "[INFO] Downloading image ${image}"
+          docker pull $image
+       done
+       touch ${__TESTS_DIR}/addons.rhelimages.configured
+     fi  
+     rm ${__TESTS_DIR}/addons.rhelimages.wanted
+   fi
+}
+
+xpaas-images-setup(){
    xpaas_image_list=(
          # New
          registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat7-openshift
@@ -234,54 +309,6 @@ ADDONS-Setup(){
          registry.access.redhat.com/jboss-webserver-3/tomcat8-openshift:3.0
    )
 
-   other_image_list=(
-         # Samples
-         docker.io/openshift/hello-openshift:latest
-   )
-
-   # Pull down images
-   if [ -f ${__TESTS_DIR}/addons.originimages.wanted ]
-   then
-     if [ ! -f ${__TESTS_DIR}/addons.originimages.configured ]
-     then
-       echo "[INFO] Downloading Origin images"
-       for image in ${origin_image_list[@]}; do
-          echo "[INFO] Downloading image ${image}"
-          docker pull $image
-       done
-       touch ${__TESTS_DIR}/addons.originimages.configured
-     fi 
-     rm ${__TESTS_DIR}/addons.originimages.wanted
-   fi
-
-   if [ -f ${__TESTS_DIR}/addons.centosimages.wanted ]
-   then
-     if [ ! -f ${__TESTS_DIR}/addons.centosimages.configured ]
-     then
-       echo "[INFO] Downloading CENTOS7 based images"
-       for image in ${centos_image_list[@]}; do
-          echo "[INFO] Downloading image ${image}"
-          docker pull $image
-       done
-       touch ${__TESTS_DIR}/addons.centosimages.configured
-     fi
-     rm ${__TESTS_DIR}/addons.centosimages.wanted
-   fi
-
-   if [ -f ${__TESTS_DIR}/addons.rhelimages.wanted ]
-   then
-     if [ ! -f ${__TESTS_DIR}/addons.rhelimages.configured ]
-     then
-       echo "[INFO] Downloading RHEL7 based images"
-       for image in ${rhel_image_list[@]}; do
-          echo "[INFO] Downloading image ${image}"
-          docker pull $image
-       done
-       touch ${__TESTS_DIR}/addons.rhelimages.configured
-     fi  
-     rm ${__TESTS_DIR}/addons.rhelimages.wanted
-   fi
-
    if [ -f ${__TESTS_DIR}/addons.xpaasimages.wanted ]
    then
      if [ ! -f ${__TESTS_DIR}/addons.xpaasimages.configured ]
@@ -295,6 +322,13 @@ ADDONS-Setup(){
      fi
      rm ${__TESTS_DIR}/addons.xpaasimages.wanted
    fi
+}
+
+other-images-setup(){
+   other_image_list=(
+         # Samples
+         docker.io/openshift/hello-openshift:latest
+   )
 
    if [ -f ${__TESTS_DIR}/addons.otherimages.wanted ]
    then
@@ -310,4 +344,29 @@ ADDONS-Setup(){
 
      rm ${__TESTS_DIR}/addons.otherimages.wanted
    fi
+}
+
+
+ADDONS-Setup(){
+
+   # TODO: Depending on the action, delete control files
+   arr=$(echo ${__OS_CONFIG} | tr "," "\n")
+   for x in ${arr}
+   do
+      touch ${__TESTS_DIR}/addons.${x}.wanted
+   done
+   
+   osetemplates-setup
+
+   metrics-setup
+
+   logging-setup
+
+   testusers-setup
+
+   origin-images-setup
+   centos-images-setup
+   rhel-images-setup
+   xpaas-images-setup
+   other-images-setup
 }

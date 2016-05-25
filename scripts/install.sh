@@ -33,35 +33,25 @@ load_configuration
 
 ##################################################
 #
-__BUILD_DIR="/go/src/github.com/openshift"
-__CONFIG_DIR="/var/lib/origin"
-__TESTS_DIR=${__CONFIG_DIR}/tests
-__BIN_DIR=${__CONFIG_DIR}/bin
-
 # Setting sane defaults, just in case
-: ${__OS_public_ip:="10.2.2.2"}
-: ${__OS_apps_domain:="myapps.10.2.2.2.xip.io"}
-: ${__OS_action:="none"} # (none, clean, build, config)
-: ${__OS_origin_repo:="openshift"}
-: ${__OS_origin_branch:="master"}
-: ${__OS_build_images:="false"}
-: ${__OS_config:="osetemplates,metrics,logging"} # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics,logging
+: ${__OS_PUBLIC_IP:="10.2.2.2"}
+: ${__OS_APPS_DOMAIN:="myapps.10.2.2.2.xip.io"}
+: ${__OS_ACTION:="none"} # (none, clean, build, config)
+: ${__OS_ORIGIN_REPO:="openshift"}
+: ${__OS_ORIGIN_BRANCH:="master"}
+: ${__OS_BUILD_IMAGES:="false"}
+: ${__OS_CONFIG:="osetemplates,metrics,logging"} # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics,logging
 : ${__OS_DOCKER_STORAGE_SIZE:="30G"}
 : ${__OS_JOURNAL_SIZE:="100M"}
-: ${__OS_force:=false}
-: ${__OS_template_ose_tag:="ose-v1.3.0-1"}
-
-# CONSTANTS
-__VERSION="latest"
-__MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
-__REPO="https://github.com/${__OS_origin_repo}/origin.git"
+: ${__OS_FORCE:=false}
+: ${__OS_TEMPLATE_OSE_TAG:="ose-v1.3.0-1"}
 #
 ##################################################
 
 mkdir -p ${__TESTS_DIR}
 
 # TODO: Review forcing
-[ ! -z ${__OS_force} ] && echo "[INFO] Forcing reinstallation of things" && rm -f ${__TESTS_DIR}/*.configured
+[ ! -z ${__OS_FORCE} ] && echo "[INFO] Forcing reinstallation of things" && rm -f ${__TESTS_DIR}/*.configured
 
 #################################################################
 

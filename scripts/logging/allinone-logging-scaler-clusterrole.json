@@ -2,18 +2,20 @@
   "kind": "ClusterRole",
   "apiVersion": "v1",
   "metadata": {
-    "name": "allinone:scaler"
+    "name": "allinone:logging-scaler"
   },
   "rules": [
     {
       "verbs": [
         "get",
-        "update"
+        "update",
+        "list"
       ],
       "attributeRestrictions": null,
       "apiGroups": null,
       "resources": [
-        "replicationcontroller/scale"
+        "deploymentconfigs",
+        "deploymentconfigs/scale"
       ]
     }
   ]

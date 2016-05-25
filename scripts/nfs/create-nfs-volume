@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#
+# Create NFS volume
+#
+# Params:
+#   $1: Volume name/number
+#
+
+. /scripts/base/common_functions
+
+must_run_as_root
+
+[ -z $1 ] && echo "[ERROR]You need to specify the volume name to this script" && exit 1
+
+__volume=$1
+
+# Make sure /nfsvolumes exists and has proper permissions
+if [ ! -d /nfsvolumes ]
+then
+   mkdir /nfsvolumes
+   chown nfsnobody:nfsnobody /nfsvolumes
+   chmod 777 /nfsvolumes
+   echo "[INFO] /nfsvolumes directory created"
+fi
+
+# Create this volume
+mkdir -p /nfsvolumes/${__volume}
+
+# Add the volume to /etc/exports and reload
+echo "/nfsvolumes/${__volume} *(rw,root_squash)" >> /etc/exports
+# Enable the new exports without bouncing the NFS service
+exportfs -a
+
+echo "[INFO] Creating NFS PV ${__volume} using from 10Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
+
+cat <<-EOF > /tmp/pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ${__volume}
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  nfs:
+    server: localhost
+    path: /nfsvolumes/${__volume}
+EOF
+
+oc create -f /tmp/pv.yaml
+echo "[INFO] PV Created"
+echo "$(oc get pv/${__volume})"

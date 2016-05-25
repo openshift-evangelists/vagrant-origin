@@ -9,21 +9,29 @@
 must_run_as_root
 load_configuration
 
+##################################
+__BUILD_DIR="/go/src/github.com/openshift"
+__CONFIG_DIR="/var/lib/origin"
+__TESTS_DIR=${__CONFIG_DIR}/tests
+__BIN_DIR=${__CONFIG_DIR}/bin
+# CONSTANTS
+__VERSION="latest"
+__MASTER_CONFIG="${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml"
+__REPO="https://github.com/${__OS_ORIGIN_REPO}/origin.git"
+##################################
+
 ORIGIN-Setup(){
    # We clean what we want to redo
-   [ "${__OS_action}" = "clean" ]  && clean_source && clean_install
-   [ "${__OS_action}" = "build" ]  && clean_target && clean_install
-   [ "${__OS_action}" = "config" ] && clean_install
+   [ "${__OS_ACTION}" = "clean" ]  && clean_source && clean_install
+   [ "${__OS_ACTION}" = "build" ]  && clean_target && clean_install
+   [ "${__OS_ACTION}" = "config" ] && clean_install
 
    # This will build
    BUILD
    # This will configure openshift
    CONFIG
-
-   # Start Origin
-   systemctl start origin
-
-   ADD_RESOURCES
+   # Install Origin additional default resources
+   ADD-Resources
 }
 
 
@@ -69,9 +77,9 @@ __checkout(){
   mkdir -p ${__BUILD_DIR}
 
   pushd ${__BUILD_DIR}
-  echo "[INFO] Cloning $__REPO to specified branch ${__OS_origin_branch}"
+  echo "[INFO] Cloning $__REPO to specified branch ${__OS_ORIGIN_BRANCH}"
 
-  git clone --single-branch --branch=${__OS_origin_branch} ${__REPO}
+  git clone --single-branch --branch=${__OS_ORIGIN_BRANCH} ${__REPO}
   [ "$?" -ne 0 ] && echo "[ERROR] Error cloning the repository" && exit 1
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
@@ -90,14 +98,8 @@ BUILD(){
   export GOPATH=/go
   export PATH=$PATH:$GOPATH/bin
 
-  # If source is there we update
-  if [ -e ${__BUILD_DIR}/origin ]
-  then
-    __update
-  else
-    # else we checkout
-    __checkout
-  fi
+  # If source is there, we update
+  [ -e ${__BUILD_DIR}/origin ] && __update || __checkout
 
   [ ! -d ${__BUILD_DIR}/origin ] && echo "[ERROR] There is no source to build. Check that the repo was properly checked out" && exit 1
 
@@ -107,7 +109,7 @@ BUILD(){
     cd ${__BUILD_DIR}/origin
     hack/build-go.sh
     # TODO: Test this
-    if [ "${__OS_build_images}" = "true" ]
+    if [ "${__OS_BUILD_IMAGES}" = "true" ]
     then
       hack/build-base-images.sh
       hack/build-release.sh
@@ -138,40 +140,42 @@ BUILD(){
   fi
 }
 
+openshift-profile-setup(){
+  echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
+  echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
+  echo "export MASTER_KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> /etc/profile.d/openshift.sh
+  echo "export MASTER_CONFIG=${__MASTER_CONFIG}" >> /etc/profile.d/openshift.sh
+  # For install, no need to login
+  export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig
+  # But root will always be cluster-admin user. No need to login.
+  echo "export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> $HOME/.bashrc
+}
+
+
 CONFIG(){
   [ -e ${__MASTER_CONFIG} ] && return 0
   echo "[INFO] Using images version ${__VERSION}"
 
-  echo "export CONFIG_DIR=${__CONFIG_DIR}" > /etc/profile.d/openshift.sh
-  echo "export MASTER_DIR=${__CONFIG_DIR}/openshift.local.config/master" >> /etc/profile.d/openshift.sh
-  echo "export KUBECONFIG=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig" >> /etc/profile.d/openshift.sh
-  echo "export MASTER_CONFIG=${__MASTER_CONFIG}" >> /etc/profile.d/openshift.sh
+  openshift-profile-setup
 
-
-  # TODO: Fix permissions for openshift.local.config, openshift.local.etcd, openshift.local.volumes
-  # Create initial configuration for Origin
-  openshift start --public-master=${__OS_public_ip} \
-      --master=${__OS_public_ip} \
-      --etcd-dir=${__CONFIG_DIR}/openshift.local.etcd \
-      --write-config=${__CONFIG_DIR}/openshift.local.config \
-      --volume-dir=${__CONFIG_DIR}/openshift.local.volumes \
-      --images='openshift/origin-${component}:'${__VERSION}
-
+  # Create initial configuration for Origin. This will not start the server.
+  openshift start --public-master=${__OS_PUBLIC_IP} \
+                  --master=${__OS_PUBLIC_IP} \
+                  --etcd-dir=${__CONFIG_DIR}/openshift.local.etcd \
+                  --write-config=${__CONFIG_DIR}/openshift.local.config \
+                  --volume-dir=${__CONFIG_DIR}/openshift.local.volumes \
+                  --images='openshift/origin-${component}:'${__VERSION}
+  # We make configuration dir world readable so that a user can use certs if needed
   chmod 666 ${__CONFIG_DIR}/openshift.local.config/master/*
 
   # Now we need to make some adjustments to the config
-  sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__OS_apps_domain}/" ${__MASTER_CONFIG}
-  # This options below should not be needed, as openshift-start is handling these
-  #  -e "s/\(.*masterPublicURL:\).*/\1 https:\/\/${__OS_public_ip}:8443/g" \
-  #  -e "s/\(.*publicURL:\).*/\1 https:\/\/${__OS_public_ip}:8443\/console\//g" \
-  #  -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/${__OS_public_ip}:8443\/console\//g"
+  sed -i.orig -e "s/\(.*subdomain:\).*/\1 ${__OS_APPS_DOMAIN}/" ${__MASTER_CONFIG}
 
   [ ! -d ${__CONFIG_DIR}/openshift.local.config/master ] && echo "[ERROR] There is no master config dir available at ${__CONFIG_DIR}/openshift.local.config/master" && exit 1
   # NOTE: If node name gets configurable, change this check and service file below
   [ ! -d ${__CONFIG_DIR}/openshift.local.config/node-origin ] && echo "[ERROR] There is no node config dir available at ${__CONFIG_DIR}/openshift.local.config/node-origin" && exit 1
 
-  # Run Origin
-  # openshift start --master-config=/var/lib/origin/openshift.local.config/master/master-config.yaml --node-config=/var/lib/origin/openshift.local.config/node-origin/node-config.yaml --public-master=#{PUBLIC_ADDRESS}
+  # Create origin service
   cat <<-EOF > /etc/systemd/system/origin.service
   [Unit]
   Description=OpenShift
@@ -179,18 +183,18 @@ CONFIG(){
 
   [Service]
   Type=notify
-  ExecStart=/usr/bin/openshift start --master-config=${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml --node-config=${__CONFIG_DIR}/openshift.local.config/node-origin/node-config.yaml --public-master=${__OS_public_ip}
+  ExecStart=/usr/bin/openshift start --master-config=${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml --node-config=${__CONFIG_DIR}/openshift.local.config/node-origin/node-config.yaml --public-master=${__OS_PUBLIC_IP}
 
   [Install]
   WantedBy=multi-user.target
 EOF
   systemctl enable origin
-
+  # Start Origin
+  systemctl start origin
 }
 
-ADD_RESOURCES() {
-  . /etc/profile.d/openshift.sh
 
+registry-setup(){
   # Install Registry
   if marker_check "origin.registry"; then
     echo "[INFO] Creating the OpenShift Registry"
@@ -203,12 +207,14 @@ ADD_RESOURCES() {
                     --mount-host=/opt/registry
 
     # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
-    oc expose service docker-registry --hostname "hub.${__OS_public_ip}"
-    echo "[INFO] Registry is accesible in hub.${__OS_public_ip}"
+    oc expose service docker-registry --hostname "hub.${__OS_PUBLIC_IP}"
+    echo "[INFO] Registry is accesible in hub.${__OS_PUBLIC_IP}"
 
     marker_create "origin.registry"
-  fi
+  fi   
+}
 
+router-setup(){
   # Install Router
   if marker_check "origin.router"; then
     echo "[INFO] Creating the OpenShift Router"
@@ -217,9 +223,11 @@ ADD_RESOURCES() {
     oc adm router --create --service-account=router
 
     marker_create "origin.router"
-  fi
+  fi   
+}
 
-  # Add admin as cluster-admin
+users-setup(){
+     # Add admin as cluster-admin
   if marker_check "origin.users"; then
     echo "[INFO] Creating and configuring users"
     ## Add admin as a cluster-admin
@@ -227,7 +235,9 @@ ADD_RESOURCES() {
 
     marker_create "origin.users"
   fi
+}
 
+anyuid-setup(){
   # Allow all users to run as anyuid
   if marker_check "origin.anyuid"; then
     echo "[INFO] Creating and configuring users"
@@ -236,16 +246,20 @@ ADD_RESOURCES() {
 
     marker_create "origin.anyuid"
   fi
+}
 
-  if marker_check "origin.cockpit"; then
-    echo "[INFO] Creating cockpit as administrative project"
-    oc adm new-project cockpit
-    oc create -f /scripts/cockpit/cockpit.json -n cockpit
-    echo "[INFO] Cockpit is available at http://cockpit.${__OS_apps_domain}"
+cockpit-setup(){
+   if marker_check "origin.cockpit"; then
+      echo "[INFO] Creating cockpit as administrative project"
+      oc adm new-project cockpit
+      oc create -f /scripts/cockpit/cockpit.json -n cockpit
+      echo "[INFO] Cockpit is available at http://cockpit.${__OS_APPS_DOMAIN}"
 
-    marker_create "origin.cockpit"
-  fi
+      marker_create "origin.cockpit"
+   fi
+}
 
+templates-setup(){
   # Installing templates into OpenShift
   if marker_check "origin.templates"; then
     echo "[INFO] Installing Origin templates"
@@ -282,21 +296,18 @@ ADD_RESOURCES() {
 
     marker_create "origin.templates"
   fi
+}
 
-
+nfs-setup(){
   # Add nfs and some sample NFS mounts and PVs
   if marker_check "origin.nfs"; then
     echo "[INFO] Creating and configuring NFS"
 
-    mkdir -p /nfsvolumes/pv{01..10}
-    chown -R nfsnobody:nfsnobody /nfsvolumes
-    chmod -R 777 /nfsvolumes
+    mkdir -p /nfsvolumes
+    chown nfsnobody:nfsnobody /nfsvolumes
+    chmod 777 /nfsvolumes
 
     echo '' > /etc/exports
-    for i in {01..10}
-    do
-      echo "/nfsvolumes/pv${i} *(rw,root_squash)" >> /etc/exports
-    done
 
     # To allow pods to write to remote NFS servers
     setsebool -P virt_use_nfs 1
@@ -305,44 +316,29 @@ ADD_RESOURCES() {
     systemctl start rpcbind nfs-server
     systemctl enable rpcbind nfs-server
 
-    # Enable the new exports without bouncing the NFS service
-    exportfs -a
-
-    echo "[INFO] Creating 10 NFS PV {pv01..10} using from 10Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
+    # Activating and simlinking script
+    chmod 755 /scripts/nfs/create-nfs-volume 
+    ln -s /scripts/nfs/create-nfs-volume /usr/local/bin/create-nfs-volume
+    
+    echo "[INFO] Creating 10 NFS PV"
     for i in {01..10}
     do
-    cat <<-EOF > /tmp/pv.yaml
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv${i}
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Recycle
-  nfs:
-    server: localhost
-    path: /nfsvolumes/pv${i}
-EOF
-    # Create 10 volumes of 10Gi
-    oc create -f /tmp/pv.yaml
+       /scripts/nfs/create-nfs-volume "pv${i}"  
     done
 
     marker_create "origin.nfs"
   fi
 
-  # Add sample app. This needs to be lightweight and expose the app in a meaningful route
-#  if [ ! -f ${__CONFIG_DIR}/tests/origin.sample.configured ]; then
-#    echo "[INFO] Creating sample app"
-    ## Add admin as a cluster-admin
-#    oc new-project turbo --display-name="Turbo Sample" --description="This is an example project to demonstrate OpenShift v3"
-#    oc process -f https://raw.githubusercontent.com/openshift/origin/master/examples/sample-app/application-template-stibuild.json | oc create -n turbo -f -
-    # curl -skL -w "%{http_code} %{url_effective}\\n" -o /tmp/output -H 'Host: www.example.com' https://localhost:443
+}
 
-#    touch ${__CONFIG_DIR}/tests/origin.sample.configured
-#  fi
+ADD-Resources() {
+   . /etc/profile.d/openshift.sh
 
+   registry-setup
+   router-setup
+   users-setup 
+   anyuid-setup
+   cockpit-setup
+   templates-setup
+   nfs-setup
 }

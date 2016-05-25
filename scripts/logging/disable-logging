@@ -1,0 +1,6 @@
+# This script will scale logging DC to 0 (a.k.a. disable logging)
+ES_DC=$(oc get dc --no-headers -n openshift-infra | cut -f 1 -d " " | grep logging-es)
+
+oc scale dc/logging-curator --replicas=0 -n openshift-infra
+oc scale dc/logging-kibana --replicas=0 -n openshift-infra
+oc scale dc/$ES_DC --replicas=0 -n openshift-infra
