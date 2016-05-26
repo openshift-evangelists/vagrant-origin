@@ -18,9 +18,15 @@ Vagrant.configure(2) do |config|
    config.vm.box_check_update = false
    config.vm.network "private_network", ip: "10.2.2.2"
    config.vm.synced_folder ".", "/vagrant", disabled: true
-   config.vm.synced_folder "config", "/config", type: "rsync"
-   config.vm.synced_folder "scripts", "/scripts", type: "rsync"
-   config.vm.synced_folder "utils", "/utils", type: "rsync"
+   if Vagrant::Util::Platform.windows?
+      config.vm.synced_folder "config", "/config"
+      config.vm.synced_folder "scripts", "/scripts"
+      config.vm.synced_folder "utils", "/utils"
+   else
+      config.vm.synced_folder "config", "/config", type: "rsync"
+      config.vm.synced_folder "scripts", "/scripts", type: "rsync"
+      config.vm.synced_folder "utils", "/utils", type: "rsync"
+   end
 
    # config.vm.hostname = "#{VM_MEM}" # It seems there is a bug in Vagrant that it does not properly manage hostname substtution and does not remove ipv6 names
    config.vm.provision "shell", inline: "hostname #{HOSTNAME}", run: "always"
