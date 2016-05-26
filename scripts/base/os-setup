@@ -12,9 +12,9 @@ load_configuration
 OS-Setup(){
    if marker_check "os.status"; then
       # Enable go-lang 1.6 until official
-      dnf copr -y enable jcajka/golang1.6
+      curl -skL https://copr.fedorainfracloud.org/coprs/jcajka/golang1.6/repo/epel-7/jcajka-golang1.6-epel-7.repo -o /etc/yum.repos.d/jcajka-golang1.6-epel-7.repo
       # Install additional packages
-      dnf install -y docker git golang bind-utils bash-completion htop nfs-utils; dnf clean all
+      yum install -y docker git golang bind-utils bash-completion htop nfs-utils; yum clean all
       # TODO: Maybe update the whole box with: dnf update
 
       # Fail if commands have not been installed

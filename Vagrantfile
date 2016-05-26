@@ -13,8 +13,7 @@ HOSTNAME = "origin"
 
 Vagrant.configure(2) do |config|
 
-   config.vm.box = "fedora/23-cloud-base" 
-   # vagrant box add --name fedora/23-cloud-base Fedora-Cloud-Base-Vagrant-23-20151030.x86_64.vagrant-libvirt.box
+   config.vm.box = "centos/7" 
    config.vm.box_check_update = false
    config.vm.network "private_network", ip: "10.2.2.2"
    config.vm.synced_folder ".", "/vagrant", disabled: true
@@ -43,7 +42,7 @@ Vagrant.configure(2) do |config|
       lv.cpus = 2
    end
 
-   config.vm.provision :shell, :path => "./scripts/install.sh"
+#   config.vm.provision :shell, :path => "./scripts/install.sh"
 
    config.vm.provision :shell, inline: <<-SHELL
       echo ""
