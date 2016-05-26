@@ -44,6 +44,7 @@ Vagrant.configure(2) do |config|
     echo
     echo "Configured users are (<username>/<password>):"
     echo     "admin/admin"
+    echo     "user/user"
     echo "But, you can also use any username and password combination you would like to create"
     echo "a new user."
     echo
@@ -51,7 +52,6 @@ Vagrant.configure(2) do |config|
     echo "If you have the oc client library on your host, you can also login from your host." 
     echo
     echo "To use OpenShift CLI, run:"
-    echo "$ vagrant ssh"
     echo "$ oc login https://10.2.2.2:8443"
     echo
   SHELL
