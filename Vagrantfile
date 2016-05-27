@@ -42,7 +42,7 @@ Vagrant.configure(2) do |config|
       lv.cpus = 2
    end
 
-#   config.vm.provision :shell, :path => "./scripts/install.sh"
+   config.vm.provision :shell, :path => "./scripts/install.sh"
 
    config.vm.provision :shell, inline: <<-SHELL
       echo ""
