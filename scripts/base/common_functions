@@ -45,3 +45,10 @@ print_configuration(){
       printenv | egrep "^__OS_"
    fi
 }
+
+#
+# Execute oc as admin
+#
+sudo_oc(){
+  oc $* --config=/var/lib/origin/openshift.local.config/master/admin.kubeconfig
+}

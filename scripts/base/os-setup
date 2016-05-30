@@ -17,10 +17,17 @@ OS-Setup(){
       yum install -y docker git golang bind-utils bash-completion htop nfs-utils; yum clean all
       # TODO: Maybe update the whole box with: dnf update
 
+      # Install jq for json parsing
+      curl --fail --silent --location --retry 3 \
+         https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 \
+         -o /usr/bin/jq \
+         && chmod 755 /usr/bin/jq
+
       # Fail if commands have not been installed
       [ "$(which docker)" = "" ] && echo "[ERROR] Docker is not properly installed" && exit 1
       [ "$(which git)" = "" ] && echo "[ERROR] Git is not properly installed" && exit 1
       [ "$(which go)" = "" ] && echo "[ERROR] Go is not properly installed" && exit 1
+      [ "$(which jq)" = "" ] && echo "[ERROR] jq is not properly installed" && exit 1
 
       # Update journal size so it doesn't grow forever
       sed -i -e "s/.*SystemMaxUse.*/SystemMaxUse=${__OS_JOURNAL_SIZE}/" /etc/systemd/journald.conf

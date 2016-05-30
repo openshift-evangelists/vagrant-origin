@@ -21,13 +21,21 @@ __REPO="https://github.com/${__OS_ORIGIN_REPO}/origin.git"
 ##################################
 
 ORIGIN-Setup(){
-   # We clean what we want to redo
-   [ "${__OS_ACTION}" = "clean" ]  && clean_source && clean_install
-   [ "${__OS_ACTION}" = "build" ]  && clean_target && clean_install
-   [ "${__OS_ACTION}" = "config" ] && clean_install
 
-   # This will build
-   BUILD
+   # Modify workflow to install a release or build from source_code
+   if [ "${__OS_ACTION}" == "release" ]
+   then
+     DOWNLOAD-AND-INSTALL-release
+   else
+     # We clean what we want to redo
+     [ "${__OS_ACTION}" = "clean" ]  && clean_source && clean_install
+     [ "${__OS_ACTION}" = "build" ]  && clean_target && clean_install
+     [ "${__OS_ACTION}" = "config" ] && clean_install
+
+     # This will build
+     BUILD
+   fi
+
    # This will configure openshift
    CONFIG
    # Install Origin additional default resources
@@ -135,9 +143,68 @@ BUILD(){
       cp -f ${i} ${__CONFIG_DIR}/bin/bash
       ln -s ${__CONFIG_DIR}/bin/bash/${i} /etc/bash_completion.d/ > /dev/null 2>&1
     done  
-
     popd
   fi
+}
+
+DOWNLOAD-AND-INSTALL-release(){
+    # Validate that options are ok, and that requirements are met
+    # Download release info
+    curl -skL https://api.github.com/repos/${__OS_ORIGIN_REPO}/origin/releases/tags/${__OS_ORIGIN_BRANCH} -o /tmp/origin-release.json
+    if [[  $(cat /tmp/origin-release.json | jq '.message') == "\"Not Found\"" ]]
+    then
+      echo "[ERROR] Release ${__OS_ORIGIN_BRANCH} not found. Instllation will exit now" && exit 1
+    else
+      echo "[INFO] Release found"
+    fi  
+    # Download the release and extract
+    cat /tmp/origin-release.json | jq '.assets[].browser_download_url' | grep "server" | sed -e 's/^"//'  -e 's/"$//' | xargs curl -kL -o /tmp/origin.tar.gz
+    [ ! -f /tmp/origin.tar.gz ] && "[ERROR] File not found" && exit 1
+
+    mkdir -p /tmp/origin
+    tar -xvzf /tmp/origin.tar.gz -C /tmp/origin
+
+    # We use for images the same version as for release
+    export __VERSION=${__OS_ORIGIN_BRANCH}
+    
+    # We copy the binaries into the <CONFIG_DIR>/bin and then link them
+    mkdir -p ${__CONFIG_DIR}/bin
+    __dir=$(find /tmp/origin -name "*origin-server*")
+    pushd ${__dir}
+    for i in `ls *`
+    do 
+      mv -f ${i} ${__CONFIG_DIR}/bin
+      ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1
+      echo "[INFO] Link created for ${i}"
+    done
+    popd
+    
+    # Add bash completions
+    mkdir -p ${__CONFIG_DIR}/bin/bash
+    pushd ${__CONFIG_DIR}/bin/bash
+    curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/oc -o oc
+    curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/oadm -o oadm
+    curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/openshift -o openshift    
+    for i in `ls *`
+    do
+      echo "[INFO] Adding bash_completion for ${i}"
+      ln -s ${__CONFIG_DIR}/bin/bash/${i} /etc/bash_completion.d/ > /dev/null 2>&1
+    done
+    popd
+
+    # Download clients
+    mkdir -p ${__CONFIG_DIR}/bin/clients
+    pushd ${__CONFIG_DIR}/bin/clients
+    for i in `cat /tmp/origin-release.json | jq '.assets[].browser_download_url' | grep client | sed -e 's/^"//'  -e 's/"$//'`
+    do
+       echo "[INFO] Downloading client ${i}"
+       echo "curl -kL -O ${i}"
+       curl -kL -O ${i}
+    done  
+    popd
+
+#    rm -rf /tmp/origin*
+    [ ! -e "/usr/bin/openshift" ] && "[ERROR] Openshift could not be properly installed" && exit 1
 }
 
 openshift-profile-setup(){
