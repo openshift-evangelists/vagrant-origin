@@ -38,8 +38,8 @@ echo "[INFO] Removing /go source tree"
 rm -rf /go
 
 # Remove all cache
-echo "[INFO] Clean dnf"
-dnf clean all
+echo "[INFO] Clean dnf/yum"
+[ "$(which dnf)" = "" ] && yum clean all || dnf clean all
 
 # Clean out all of the caching dirs
 echo "[INFO] Clear cache and logs"
