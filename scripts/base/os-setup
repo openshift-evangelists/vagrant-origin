@@ -11,7 +11,7 @@ load_configuration
 
 OS-Setup(){
    if marker_check "os.status"; then
-      [ "$(which dnf)" = "" ]
+      if [ "$(which dnf)" = "" ]
       then 
          # Using centos 7
          # Enable go-lang 1.6 until official
