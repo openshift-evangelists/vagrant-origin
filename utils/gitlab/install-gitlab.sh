@@ -28,11 +28,11 @@ sudo_oc create -f /utils/gitlab/gitlab-template.json -n gitlab
 sudo_oc create -f /utils/gitlab/gitlab-pvcs.json -n gitlab
 
 # Create nfs with no_root_squash
-/utils/gitlab/create-nfs-pv.sh pv-gitlab-redis-data gitlab gitlab-ce-redis-data
-/utils/gitlab/create-nfs-pv.sh pv-gitlab-etc        gitlab gitlab-ce-etc
-/utils/gitlab/create-nfs-pv.sh pv-gitlab-logs       gitlab gitlab-ce-logs
-/utils/gitlab/create-nfs-pv.sh pv-gitlab-opt        gitlab gitlab-ce-opt
-/utils/gitlab/create-nfs-pv.sh pv-gitlab-postgresql gitlab gitlab-ce-postgresql
+/utils/gitlab/create-nfs-pv.sh pv-gitlab-redis-data gitlab gitlab-redis-data
+/utils/gitlab/create-nfs-pv.sh pv-gitlab-etc        gitlab gitlab-etc
+/utils/gitlab/create-nfs-pv.sh pv-gitlab-logs       gitlab gitlab-logs
+/utils/gitlab/create-nfs-pv.sh pv-gitlab-opt        gitlab gitlab-opt
+/utils/gitlab/create-nfs-pv.sh pv-gitlab-postgresql gitlab gitlab-postgresql
 
 # Create the application
 sudo_oc new-app gitlab-ce -n gitlab
