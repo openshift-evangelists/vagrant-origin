@@ -35,7 +35,7 @@ load_configuration
 #
 # Setting sane defaults, just in case
 : ${__OS_PUBLIC_IP:="10.2.2.2"}
-: ${__OS_APPS_DOMAIN:="myapps.10.2.2.2.xip.io"}
+: ${__OS_APPS_DOMAIN:="apps.10.2.2.2.xip.io"}
 : ${__OS_ACTION:="none"} # (none, clean, build, config)
 : ${__OS_ORIGIN_REPO:="openshift"}
 : ${__OS_ORIGIN_BRANCH:="master"}
@@ -44,7 +44,7 @@ load_configuration
 : ${__OS_DOCKER_STORAGE_SIZE:="30G"}
 : ${__OS_JOURNAL_SIZE:="100M"}
 : ${__OS_FORCE:=false}
-: ${__OS_XPAAS_TAG:="ose-v1.3.0-1"}
+: ${__OS_XPAAS_TAG:="ose-v1.3.1"}
 #
 ##################################################
 
