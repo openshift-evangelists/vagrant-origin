@@ -40,7 +40,7 @@ load_configuration
 : ${__OS_ORIGIN_REPO:="openshift"}
 : ${__OS_ORIGIN_BRANCH:="master"}
 : ${__OS_BUILD_IMAGES:="false"}
-: ${__OS_CONFIG:="osetemplates,metrics,logging"} # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,metrics,logging
+: ${__OS_CONFIG:="xpaastemplates,metrics,logging"} # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,xpaastemplates,metrics,logging
 : ${__OS_DOCKER_STORAGE_SIZE:="30G"}
 : ${__OS_JOURNAL_SIZE:="100M"}
 : ${__OS_FORCE:=false}
