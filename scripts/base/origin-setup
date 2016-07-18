@@ -129,7 +129,7 @@ BUILD(){
     mkdir -p ${__CONFIG_DIR}/bin
     pushd ${__BUILD_DIR}/origin/_output/local/bin/linux/amd64/
     for i in `ls *`
-    do 
+    do
       cp -f ${i} ${__CONFIG_DIR}/bin
       ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1
     done
@@ -142,7 +142,7 @@ BUILD(){
     do
       cp -f ${i} ${__CONFIG_DIR}/bin/bash
       ln -s ${__CONFIG_DIR}/bin/bash/${i} /etc/bash_completion.d/ > /dev/null 2>&1
-    done  
+    done
     popd
   fi
 }
@@ -156,7 +156,7 @@ DOWNLOAD-AND-INSTALL-release(){
       echo "[ERROR] Release ${__OS_ORIGIN_BRANCH} not found. Instllation will exit now" && exit 1
     else
       echo "[INFO] Release found"
-    fi  
+    fi
     # Download the release and extract
     cat /tmp/origin-release.json | jq '.assets[].browser_download_url' | grep "server" | sed -e 's/^"//'  -e 's/"$//' | xargs curl -kL -o /tmp/origin.tar.gz
     [ ! -f /tmp/origin.tar.gz ] && "[ERROR] File not found" && exit 1
@@ -166,7 +166,7 @@ DOWNLOAD-AND-INSTALL-release(){
 
     # We use for images the same version as for release
     export __VERSION=${__OS_ORIGIN_BRANCH}
-    
+
     # We copy the binaries into the <CONFIG_DIR>/bin and then link them
     mkdir -p ${__CONFIG_DIR}/bin
     __dir=$(find /tmp/origin -name "*origin-server*")
@@ -175,7 +175,7 @@ DOWNLOAD-AND-INSTALL-release(){
     tar -xvzf /tmp/origin/source-to-image.tar.gz -C ${__dir}
     pushd ${__dir}
     for i in `ls *`
-    do 
+    do
       mv -f ${i} ${__CONFIG_DIR}/bin
       ln -s ${__CONFIG_DIR}/bin/${i} /usr/bin/ > /dev/null 2>&1
       echo "[INFO] Link created for ${i}"
@@ -187,7 +187,7 @@ DOWNLOAD-AND-INSTALL-release(){
     pushd ${__CONFIG_DIR}/bin/bash
     curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/oc -o oc
     curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/oadm -o oadm
-    curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/openshift -o openshift    
+    curl -skL https://raw.githubusercontent.com/${__OS_ORIGIN_REPO}/origin/${__OS_ORIGIN_BRANCH}/contrib/completions/bash/openshift -o openshift
     for i in `ls *`
     do
       echo "[INFO] Adding bash_completion for ${i}"
@@ -203,7 +203,7 @@ DOWNLOAD-AND-INSTALL-release(){
        echo "[INFO] Downloading client ${i}"
        echo "curl -kL -O ${i}"
        curl -kL -O ${i}
-    done  
+    done
     popd
 
 #    rm -rf /tmp/origin*
@@ -281,7 +281,7 @@ registry-setup(){
     echo "[INFO] Registry is accesible in hub.${__OS_PUBLIC_IP}"
 
     marker_create "origin.registry"
-  fi   
+  fi
 }
 
 router-setup(){
@@ -293,7 +293,7 @@ router-setup(){
     oc adm router --create --service-account=router
 
     marker_create "origin.router"
-  fi   
+  fi
 }
 
 users-setup(){
@@ -322,6 +322,9 @@ cockpit-setup(){
    if marker_check "origin.cockpit"; then
       echo "[INFO] Creating cockpit as administrative project"
       oc adm new-project cockpit
+      # Template is made generic, so that __OS_APPS_DOMAIN get's properly replaced if customized
+      sed -i.orig -e "s/#ORIGIN_IP#/${__OS_PUBLIC_IP}/g" /scripts/cockpit/cockpit.json
+      sed -i.orig -e "s/#COCKPIT_DOMAIN#/cockpit.${__OS_APPS_DOMAIN}/g" /scripts/cockpit/cockpit.json
       oc create -f /scripts/cockpit/cockpit.json -n cockpit
       echo "[INFO] Cockpit is available at http://cockpit.${__OS_APPS_DOMAIN}"
 
@@ -387,13 +390,13 @@ nfs-setup(){
     systemctl enable rpcbind nfs-server
 
     # Activating and simlinking script
-    chmod 755 /scripts/nfs/create-nfs-volume 
+    chmod 755 /scripts/nfs/create-nfs-volume
     ln -s /scripts/nfs/create-nfs-volume /usr/local/bin/create-nfs-volume
-    
+
     echo "[INFO] Creating 10 NFS PV"
     for i in {01..10}
     do
-       /scripts/nfs/create-nfs-volume "pv${i}"  
+       /scripts/nfs/create-nfs-volume "pv${i}"
     done
 
     marker_create "origin.nfs"
@@ -406,7 +409,7 @@ ADD-Resources() {
 
    registry-setup
    router-setup
-   users-setup 
+   users-setup
    anyuid-setup
    cockpit-setup
    templates-setup

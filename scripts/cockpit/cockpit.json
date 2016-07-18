@@ -54,7 +54,7 @@
                 "env": [
                   {
                     "name": "OPENSHIFT_OAUTH_PROVIDER_URL",
-                    "value": "https://10.2.2.2:8443"
+                    "value": "https://#ORIGIN_IP#:8443"
                   },
                   {
                     "name": "OPENSHIFT_OAUTH_CLIENT_ID",
@@ -126,7 +126,7 @@
         }
       },
       "spec": {
-        "host": "cockpit.apps.10.2.2.2.xip.io",
+        "host": "#COCKPIT_DOMAIN#",
         "to": {
           "kind": "Service",
           "name": "openshift-cockpit"
@@ -149,7 +149,7 @@
       "secret": "usermaBGPqkERbospcYt0ED64DDBtu2Nby1lv1bJbrlpaxwSYlr3nXwGwTdO05sjWlLm",
       "allowAnyScope": true,
       "redirectURIs": [
-        "http://cockpit.apps.10.2.2.2.xip.io"
+        "http://#COCKPIT_DOMAIN#"
       ]
     }
   ]
