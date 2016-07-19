@@ -171,7 +171,7 @@ DOWNLOAD-AND-INSTALL-release(){
     mkdir -p ${__CONFIG_DIR}/bin
     __dir=$(find /tmp/origin -name "*origin-server*")
     # Add source-to-image
-    curl -skL https://github.com/openshift/source-to-image/releases/download/v1.0.9/source-to-image-v1.0.9-f9ff77d-linux-amd64.tar.gz -o /tmp/origin/source-to-image.tar.gz
+    curl -skL https://github.com/openshift/source-to-image/releases/download/v1.1.0/source-to-image-v1.1.0-9350cd1-linux-amd64.tar.gz -o /tmp/origin/source-to-image.tar.gz
     tar -xvzf /tmp/origin/source-to-image.tar.gz -C ${__dir}
     pushd ${__dir}
     for i in `ls *`
