@@ -24,12 +24,12 @@ DOCKER-Setup(){
 
       ##  Enable the internal registry and configure the Docker to allow pushing to internal OpenShift registry
       echo "[INFO] Configuring Docker for Red Hat registry and else ..."
-      sed -i -e "s/^.*INSECURE_REGISTRY=.*/INSECURE_REGISTRY='--insecure-registry 0\.0\.0\.0\/0 '/" /etc/sysconfig/docker 
-      sed -i -e "s/^.*OPTIONS=.*/OPTIONS='--selinux-enabled --storage-opt dm\.no_warn_on_loop_devices=true --storage-opt dm\.loopdatasize=${__OS_DOCKER_STORAGE_SIZE}'/" /etc/sysconfig/docker
-      # sed -i -e "s/^.*ADD_REGISTRY=.*/ADD_REGISTRY='--add-registry registry\.access\.redhat\.com'/" /etc/sysconfig/docker 
+      sed -i -e "s/^.*INSECURE_REGISTRY=.*/INSECURE_REGISTRY='--insecure-registry 0\.0\.0\.0\/0 '/" /etc/sysconfig/docker
+      sed -i -e "s/^.*OPTIONS=.*/OPTIONS='--selinux-enabled --storage-opt dm\.loopdatasize=${__OS_DOCKER_STORAGE_SIZE}'/" /etc/sysconfig/docker
+      # sed -i -e "s/^.*ADD_REGISTRY=.*/ADD_REGISTRY='--add-registry registry\.access\.redhat\.com'/" /etc/sysconfig/docker
 
       ## Disable firewall
-      systemctl stop firewalld; systemctl disable firewalld 
+      systemctl stop firewalld; systemctl disable firewalld
       systemctl start docker; systemctl enable docker
 
       marker_create "docker.setup"

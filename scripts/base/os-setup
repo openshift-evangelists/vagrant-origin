@@ -17,14 +17,14 @@ OS-Setup(){
          # Enable go-lang 1.6 until official
          curl -skL https://copr.fedorainfracloud.org/coprs/jcajka/golang1.6/repo/epel-7/jcajka-golang1.6-epel-7.repo -o /etc/yum.repos.d/jcajka-golang1.6-epel-7.repo
          # Install additional packages
-         yum install -y docker-1.9.1-25.el7.centos git golang bind-utils bash-completion htop nfs-utils; yum clean all
+         yum install -y docker${__OS_DOCKER_VERSION:+-${__OS_DOCKER_VERSION}} git golang bind-utils bash-completion htop nfs-utils; yum clean all
          # TODO: Maybe update the whole box with: yum update
       else
          # Using fedora 23+
          # Enable go-lang 1.6 until official
          dnf copr -y enable jcajka/golang1.6
          # Install additional packages
-         dnf install -y docker git golang bind-utils bash-completion htop nfs-utils; dnf clean all
+         dnf install -y docker${__OS_DOCKER_VERSION:+-${__OS_DOCKER_VERSION}} git golang bind-utils bash-completion htop nfs-utils; dnf clean all
          # TODO: Maybe update the whole box with: dnf update
       fi
 
