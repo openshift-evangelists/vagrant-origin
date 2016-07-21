@@ -8,7 +8,7 @@
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.7.2"
 
-VM_MEM = ENV['ORIGIN_VM_MEM'] || 4096 # Memory used for the VM
+VM_MEM = ENV['ORIGIN_VM_MEM'] || 6144 # Memory used for the VM
 HOSTNAME = "origin"
 
 Vagrant.configure(2) do |config|
