@@ -141,12 +141,13 @@ logging-setup(){
        oc adm policy add-cluster-role-to-user oauth-editor system:serviceaccount:openshift-infra:logging-deployer
        oc adm policy add-scc-to-user privileged system:serviceaccount:openshift-infra:aggregated-logging-fluentd
        oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:aggregated-logging-fluentd
-       # Deploy EFK stack and configure all the created pods (Add these if you want ops cluster: KIBANA_OPS_HOSTNAME=kibana-ops.${__OS_APPS_DOMAIN},ENABLE_OPS_CLUSTER=true,ES_OPS_CLUSTER_SIZE=1)
+       # Deploy EFK stack and configure all the created pods (Add these if you want ops cluster: ENABLE_OPS_CLUSTER=true)
        oc new-app logging-deployer-template \
           -p IMAGE_VERSION=${__VERSION} \
           -p KIBANA_HOSTNAME=kibana.${__OS_APPS_DOMAIN} \
           -p ES_CLUSTER_SIZE=1 \
-          -p PUBLIC_MASTER_URL=https://${__public_address}:8443
+          -p KIBANA_OPS_HOSTNAME=kibana-ops.${__OS_APPS_DOMAIN} \
+          -p PUBLIC_MASTER_URL=https://${__OS_PUBLIC_IP}:8443
        oc label nodes --all logging-infra-fluentd=true
 
        sed -i.orig -e "s/\(.*loggingPublicURL:\).*/\1 \"https:\/\/kibana.${__OS_APPS_DOMAIN}\"/" ${__MASTER_CONFIG}
