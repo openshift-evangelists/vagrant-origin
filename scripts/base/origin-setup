@@ -115,12 +115,12 @@ BUILD(){
   then
     # We build
     cd ${__BUILD_DIR}/origin
-    hack/build-go.sh
+    OS_ONLY_BUILD_PLATFORMS=${__OS_ONLY_BUILD_PLATFORMS-} hack/build-go.sh
     # TODO: Test this
     if [ "${__OS_BUILD_IMAGES}" = "true" ]
     then
       hack/build-base-images.sh
-      hack/build-release.sh
+      OS_ONLY_BUILD_PLATFORMS=${__OS_ONLY_BUILD_PLATFORMS-} hack/build-release.sh
       hack/build-images.sh
       export __VERSION=$(git rev-parse --short "HEAD^{commit}" 2>/dev/null)
     fi

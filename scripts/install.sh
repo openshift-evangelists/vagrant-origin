@@ -39,6 +39,7 @@ load_configuration
 : ${__OS_ACTION:="none"} # (none, clean, build, config)
 : ${__OS_ORIGIN_REPO:="openshift"}
 : ${__OS_ORIGIN_BRANCH:="master"}
+: ${__OS_ONLY_BUILD_PLATFORMS:="linux/amd64"}
 : ${__OS_BUILD_IMAGES:="false"}
 : ${__OS_CONFIG:="xpaastemplates,metrics,logging"} # testusers,originimages,centosimages,rhelimages,xpaasimages,otherimages,osetemplates,xpaastemplates,metrics,logging
 : ${__OS_DOCKER_VERSION:=""}
