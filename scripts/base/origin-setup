@@ -274,7 +274,8 @@ registry-setup(){
     oc adm policy add-scc-to-user privileged system:serviceaccount:default:registry
     oc adm registry --service-account=registry \
                     --config=${__CONFIG_DIR}/openshift.local.config/master/admin.kubeconfig \
-                    --mount-host=/opt/registry
+                    --mount-host=/opt/registry \
+                    --latest-images="$([ ${__OS_IMAGES_VERSION} = 'latest' ] && echo 'true' || echo 'false')"
 
     # TODO: Secure the registry (https://docs.openshift.org/latest/install_config/install/docker_registry.html)
     oc expose service docker-registry --hostname "hub.${__OS_PUBLIC_IP}"
@@ -290,7 +291,9 @@ router-setup(){
     echo "[INFO] Creating the OpenShift Router"
     oc adm policy add-scc-to-user hostnetwork system:serviceaccount:default:router
     ## Create the router
-    oc adm router --create --service-account=router
+    oc adm router --create 
+                  --service-account=router \
+                  --latest-images="$([ ${__OS_IMAGES_VERSION} = 'latest' ] && echo 'true' || echo 'false')"
 
     marker_create "origin.router"
   fi
