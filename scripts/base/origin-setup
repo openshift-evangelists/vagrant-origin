@@ -396,10 +396,10 @@ nfs-setup(){
     chmod 755 /scripts/nfs/create-nfs-volume
     ln -s /scripts/nfs/create-nfs-volume /usr/local/bin/create-nfs-volume
 
-    echo "[INFO] Creating 10 NFS PV"
-    for i in {01..10}
+    echo "[INFO] Creating ${__OS_PV_COUNT} NFS PV"
+    for i in $(seq -w 01 ${__OS_PV_COUNT})
     do
-       /scripts/nfs/create-nfs-volume "pv${i}"
+       /scripts/nfs/create-nfs-volume "pv${i}" "${__OS_PV_SIZE}" "${__OS_PV_NFS_OPTIONS}"
     done
 
     marker_create "origin.nfs"

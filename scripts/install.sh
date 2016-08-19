@@ -47,6 +47,9 @@ load_configuration
 : ${__OS_JOURNAL_SIZE:="100M"}
 : ${__OS_FORCE:=false}
 : ${__OS_XPAAS_TAG:="ose-v1.3.1"}
+: ${__OS_PV_COUNT:="10"}
+: ${__OS_PV_NFS_SIZE:="10"}
+: ${__OS_PV_OPTIONS:="rw,root_squash"}
 #
 ##################################################
 
