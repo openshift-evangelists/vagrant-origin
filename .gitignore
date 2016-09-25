@@ -2,3 +2,13 @@
 *.box
 .DS_Store
 .gitconfig
+
+# IntelliJ IDEA #
+.idea
+.iml
+
+# Eclipse Files #
+.metadata
+.settings
+.project
+.classpath
