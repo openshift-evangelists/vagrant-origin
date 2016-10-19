@@ -13,6 +13,8 @@ must_run_as_root
 [ -z $1 ] && echo "[ERROR]You need to specify the volume name to this script" && exit 1
 
 __volume=$1
+__size=${2:-10}
+__options=${3:-rw,root_squash}
 
 # Make sure /nfsvolumes exists and has proper permissions
 if [ ! -d /nfsvolumes ]
@@ -29,11 +31,11 @@ chown nfsnobody:nfsnobody /nfsvolumes/${__volume}
 chmod 777 /nfsvolumes/${__volume}
 
 # Add the volume to /etc/exports and reload
-echo "/nfsvolumes/${__volume} *(rw,root_squash)" >> /etc/exports
+echo "/nfsvolumes/${__volume} *(${__options})" >> /etc/exports
 # Enable the new exports without bouncing the NFS service
 exportfs -a
 
-echo "[INFO] Creating NFS PV ${__volume} using from 10Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
+echo "[INFO] Creating NFS PV ${__volume} using from ${__size}Gi in ReadWriteMany or ReadWriteOnly mode and Recycle Policy."
 
 cat <<-EOF > /tmp/pv.yaml
 apiVersion: v1
@@ -42,7 +44,7 @@ metadata:
   name: ${__volume}
 spec:
   capacity:
-    storage: 10Gi
+    storage: ${__size}Gi
   accessModes:
     - ReadWriteOnce
     - ReadWriteMany
