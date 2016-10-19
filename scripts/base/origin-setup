@@ -363,6 +363,8 @@ templates-setup(){
       https://raw.githubusercontent.com/ryanj/origin-s2i-nodejs/master/image-streams.json
       # Warpdrive-python
       https://raw.githubusercontent.com/GrahamDumpleton/warpdrive/master/openshift/warpdrive-python.json
+      # Gitlab
+      https://gitlab.com/gitlab-org/omnibus-gitlab/raw/master/docker/openshift-template.json
     )
 
     for template in ${template_list[@]}; do
