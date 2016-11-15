@@ -253,6 +253,7 @@ CONFIG(){
 
   [Service]
   Type=notify
+  EnvironmentFile=-/etc/profile.d/proxy.sh
   ExecStart=/usr/bin/openshift start --master-config=${__CONFIG_DIR}/openshift.local.config/master/master-config.yaml --node-config=${__CONFIG_DIR}/openshift.local.config/node-origin/node-config.yaml --public-master=${__OS_PUBLIC_IP}
 
   [Install]
