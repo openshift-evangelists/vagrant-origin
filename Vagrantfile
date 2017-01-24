@@ -34,6 +34,9 @@ Vagrant.configure(2) do |config|
    config.vm.provision "shell", inline: "hostname #{HOSTNAME}", run: "always"
    config.vm.provision "shell", inline: "sed -i.bak '/::1/d' /etc/hosts && echo '127.0.1.1 #{HOSTNAME}' >> /etc/hosts"
 
+   #it seems there is a bug on eth1 init. Forcing its activation in order to have the ip accessible from host
+   config.vm.provision "shell", inline: "ifup eth1"
+
    config.vm.provider "virtualbox" do |vb|
       vb.memory = "#{VM_MEM}"
       vb.cpus = 2
